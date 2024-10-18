@@ -1,13 +1,10 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.old;
+
+//@Autonomous(name = "AutoJavaRedOld", group = "Auto")
+public class AutoJavaRedOld extends AutoJavaOld {
 
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-
-@Autonomous(name = "AutoJavaRedBackdrop", group = "Auto")
-public class AutoJavaRedBackdrop extends AutoJava {
-
-
-    public AutoJavaRedBackdrop() {
+    public AutoJavaRedOld() {
         super(false);
     }
 
@@ -35,9 +32,8 @@ public class AutoJavaRedBackdrop extends AutoJava {
         while (opModeIsActive()) {
 
             // robot must be 8.5 inches away from the left of the robot
-            switch (pixelDetection.getPosition()) { //
+            switch (pixelDetection.getPosition()) {
 
-                // Completely working
                 case LEFT: {
 
 
@@ -52,8 +48,8 @@ public class AutoJavaRedBackdrop extends AutoJava {
 
                 }
 
-                // Completely working
                 case RIGHT: {
+
 
 
                     break;
@@ -61,7 +57,6 @@ public class AutoJavaRedBackdrop extends AutoJava {
                 }
 
             }
-            break;
 
 
         }
@@ -69,5 +64,4 @@ public class AutoJavaRedBackdrop extends AutoJava {
 
 
     }
-
 }

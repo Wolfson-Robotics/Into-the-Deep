@@ -1,15 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 
 /**
@@ -18,30 +12,19 @@ import java.util.Map;
  * author: WolfsonRobotics
  */
 @TeleOp(name = "debugjava")
-public class DebugJava extends LinearOpMode {
-    private DcMotor right_drive1;
-    private DcMotor right_drive2;
-    private DcMotor left_drive1;
-    private DcMotor left_drive2;
+public class DebugJava extends RobotBase {
 
     double powerFactor = 1.25;
-
     private CustomTelemetryLogger logger;
-
-
     private boolean buttonPressed = false;
 
 
+    @Override
     public void initMotors() {
-        right_drive1 = hardwareMap.get(DcMotor.class, "right_drive1");
-        right_drive2 = hardwareMap.get(DcMotor.class, "right_drive2");
-        left_drive1 = hardwareMap.get(DcMotor.class, "left_drive1");
-        left_drive2 = hardwareMap.get(DcMotor.class, "left_drive2");
-
-        right_drive1.setDirection(DcMotorSimple.Direction.REVERSE);
-        right_drive2.setDirection(DcMotorSimple.Direction.REVERSE);
-
+        super.initMotors();
+        this.setBrakeMotors();
     }
+
 
     @Override
     public void runOpMode() {
@@ -52,8 +35,8 @@ public class DebugJava extends LinearOpMode {
         boolean buttonPressed = false;
         //variables for debug
         String moves = "";
-        double startposright = right_drive1.getCurrentPosition();
-        double startposleft = left_drive1.getCurrentPosition();
+        double startposright = rf_drive.getCurrentPosition();
+        double startposleft = lf_drive.getCurrentPosition();
         int numberlog = 0;
         boolean debug = false;
         boolean depadPressed = false;
@@ -82,8 +65,8 @@ public class DebugJava extends LinearOpMode {
 
                     // Dpad up starts the logging pipeline
                     if(gamepad1.dpad_up) {
-                        startposright = right_drive1.getCurrentPosition();
-                        startposleft = left_drive1.getCurrentPosition();
+                        startposright = rf_drive.getCurrentPosition();
+                        startposleft = lf_drive.getCurrentPosition();
                         telemetry.addLine("log start");
                         telemetry.update();
                     }
@@ -93,8 +76,8 @@ public class DebugJava extends LinearOpMode {
                     {
                         depadPressed = true;
                         numberlog++;
-                        double rightDif = (right_drive1.getCurrentPosition() - startposright);
-                        double leftDif = (left_drive1.getCurrentPosition() - startposleft);
+                        double rightDif = (rf_drive.getCurrentPosition() - startposright);
+                        double leftDif = (lf_drive.getCurrentPosition() - startposleft);
                         logger.logData("log num: " + numberlog);
                         logger.logData("right movement:" + rightDif);
                         logger.logData("left movement:" + leftDif);
@@ -115,8 +98,8 @@ public class DebugJava extends LinearOpMode {
 
 
 
-                        startposright = right_drive1.getCurrentPosition();
-                        startposleft = left_drive1.getCurrentPosition();
+                        startposright = rf_drive.getCurrentPosition();
+                        startposleft = lf_drive.getCurrentPosition();
                         turn = false;
 
                     }
@@ -165,7 +148,7 @@ public class DebugJava extends LinearOpMode {
 
 
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             telemetry.addData("Error", "IOException: " + e.getMessage());
             telemetry.update();
         } finally {
@@ -210,6 +193,7 @@ public class DebugJava extends LinearOpMode {
         degrees = Math.round((float)(((((tics /intCon)*90)/distUnit)/1.75)));
         return degrees;
     }
+    /*
     private void moveServo(Servo servo, double targetPosition, long speed) {
         if (Math.abs(servo.getPosition() - targetPosition) > 0.01) {
             // Move the servo towards the target position slowly
@@ -223,14 +207,14 @@ public class DebugJava extends LinearOpMode {
             sleep(speed); // Sleep for 100 milliseconds (adjust for desired speed)
         }
 
-    }
+    }*/
 
     private void moveBot(float vertical, float pivot, float horizontal) {
         pivot *= 0.5;
-        right_drive1.setPower(powerFactor * (-pivot + (vertical - horizontal)));
-        right_drive2.setPower(powerFactor * (-pivot + vertical + horizontal));
-        left_drive1.setPower(powerFactor * (pivot + vertical + horizontal));
-        left_drive2.setPower(powerFactor * (pivot + (vertical - horizontal)));
+        rf_drive.setPower(powerFactor * (-pivot + (vertical - horizontal)));
+        rb_drive.setPower(powerFactor * (-pivot + vertical + horizontal));
+        lf_drive.setPower(powerFactor * (pivot + vertical + horizontal));
+        lb_drive.setPower(powerFactor * (pivot + (vertical - horizontal)));
 
     }
 

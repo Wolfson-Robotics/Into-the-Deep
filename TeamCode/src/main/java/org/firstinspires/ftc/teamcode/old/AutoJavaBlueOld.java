@@ -1,13 +1,11 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.old;
 
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-
-@Autonomous(name = "AutoJavaBlueBackdrop", group = "Auto")
-public class AutoJavaBlueBackdrop extends AutoJava {
+//@Autonomous(name = "AutoJavaBlueOld", group = "Auto")
+public class AutoJavaBlueOld extends AutoJavaOld {
 
 
-    public AutoJavaBlueBackdrop() {
+    public AutoJavaBlueOld() {
         super(true);
     }
 
@@ -39,7 +37,6 @@ public class AutoJavaBlueBackdrop extends AutoJava {
 
                 case LEFT: {
 
-                    
 
                     break;
 
@@ -48,9 +45,6 @@ public class AutoJavaBlueBackdrop extends AutoJava {
 
                 case CENTER: {
 
-                    
-
-                    
 
                     break;
 
@@ -58,12 +52,15 @@ public class AutoJavaBlueBackdrop extends AutoJava {
 
                 case RIGHT: {
 
+
                     break;
+
                 }
             }
 
+
         }
 
-    }
 
+    }
 }

@@ -2,11 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "DriveJava", group = "Auto")
-public class DriveJava extends RobotBase {
+@TeleOp(name = "TestDriveJava", group = "Auto")
+public class TestDriveJava extends RobotBase {
 
     private double powerFactor = 1.25;
-    private double manualArmSpeed = 0.01;
 
     @Override
     public void runOpMode() {
@@ -16,34 +15,42 @@ public class DriveJava extends RobotBase {
 
         waitForStart();
         double currentArmPosition = 0.35;
+        double experimentalArmPos = currentArmPosition;
         while (opModeIsActive()) {
-
             moveServo(arm, currentArmPosition, 20);
             lift.setPower(gamepad2.right_stick_y * 0.5);
-
             if (gamepad2.left_stick_y > 0) {
-                currentArmPosition += this.manualArmSpeed; // increase by a small step
+                currentArmPosition += 0.01; // increase by a small step
                 if(currentArmPosition > 1) currentArmPosition = 1;
             } else if (gamepad2.left_stick_y < 0) {
-                currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
+                currentArmPosition -= 0.01; // decrease by a small steps
                 if(currentArmPosition < -1) currentArmPosition = -1;
             }
-
-            telemetry.addData("arm sent pos tic: ", currentArmPosition);
-            telemetry.addData("arm pos tic actual: ", arm.getPosition());
-            telemetry.addData("lift pos tic actual: ", lift.getCurrentPosition());
+            if (gamepad1.y) {
+                telemetry.addLine("Lift move up");
+                telemetry.update();
+                lift.setPower(-.4);
+                sleep(100);
+                lift.setPower(0);
+            }
+            if (gamepad1.a) {
+                telemetry.addLine("Lift move down");
+                telemetry.update();
+                lift.setPower(.4);
+                sleep(100);
+                lift.setPower(0);
+            }
+            telemetry.addData("arm: ", currentArmPosition);
+            telemetry.addData("arm pos: ", arm.getPosition());
+            telemetry.addData("lift tic: ", lift.getCurrentPosition());
             telemetry.addData("lift power sent: ", gamepad2.right_stick_y);
-            telemetry.addData("lift power actual: ", lift.getPower());
             telemetry.update();
-
-            // grab claw
             if (gamepad2.left_trigger > 0) {
                 claw.setPosition(0.18);
-            }
-            // drop
+            } //grab claw
             if (gamepad2.right_trigger > 0) {
                 claw.setPosition(0.06);
-            }
+            }//drop
 
 
             moveBot(-gamepad1.left_stick_y, (gamepad1.right_stick_x), gamepad1.left_stick_x);
@@ -59,4 +66,5 @@ public class DriveJava extends RobotBase {
         lf_drive.setPower(powerFactor * (pivot + vertical + horizontal));
         lb_drive.setPower(powerFactor * (pivot + (vertical - horizontal)));
     }
+
 }
