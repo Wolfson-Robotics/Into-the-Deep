@@ -4,7 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class CustomTelemetryLogger {
-    private static FileWriter fileWriter;
+    private FileWriter fileWriter;
     private int logNum = 1;
     public CustomTelemetryLogger(String filePath) throws IOException {
         if (fileWriter == null)
