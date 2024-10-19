@@ -26,8 +26,17 @@ public abstract class RobotBase extends LinearOpMode {
     protected OpenCvCamera camera;
     protected String webcamName = "Webcam 1";
 
-
     protected double powerFactor = 1;
+
+    protected final double WHEEL_DIAMETER_INCHES = 3.0;
+    protected final double WHEEL_CIRCUMFERENCE = Math.PI * WHEEL_DIAMETER_INCHES;
+    protected final double TICKS_PER_ROTATION = 288;
+
+    protected final double intCon = 8.727272;
+
+    protected final double closedClawPos = 0.26;
+    protected final double openClawPos = -0.1;
+
 
     protected void initMotors() {
 
@@ -100,16 +109,25 @@ public abstract class RobotBase extends LinearOpMode {
 
     }
 
-    protected void moveMotor(DcMotor motor, int targetPosition, double speed) {
+    protected void moveMotor(DcMotor motor, int targetPosition, double speed, boolean stay) {
+        int oldTargetPosition = targetPosition;
         motor.setTargetPosition(targetPosition);
+        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motor.setPower(speed);
-        while (lift.isBusy() && lift.getCurrentPosition() < -1 * targetPosition) {
+        targetPosition = oldTargetPosition + targetPosition;
+        if (targetPosition < 0) {
+            targetPosition *= -1;
+        }
+        while (motor.isBusy() && motor.getCurrentPosition() < targetPosition) {
             idle();
         }
-        motor.setPower(0);
+        if (!stay) {
+            motor.setPower(0);
+        }
     }
-    protected void moveMotor(DcMotor motor, int targetPosition) {
-        moveMotor(motor, targetPosition, 0.05);
+
+    protected void moveMotor(DcMotor motor, int targetPosition, double speed) {
+        moveMotor(motor, targetPosition, speed, false);
     }
 
 
@@ -118,6 +136,16 @@ public abstract class RobotBase extends LinearOpMode {
         lb_drive.setPower(0);
         rf_drive.setPower(0);
         rb_drive.setPower(0);
+    }
+
+
+    // utility calc methods
+    protected int ticsToDegrees(int tics) {
+        int degrees = 0;
+        double robotLength = 13.62;
+        double distUnit = (robotLength) / (Math.cos(45));
+        degrees = Math.round((float)(((((tics /intCon)*90)/distUnit)/1.75)));
+        return degrees;
     }
 
 

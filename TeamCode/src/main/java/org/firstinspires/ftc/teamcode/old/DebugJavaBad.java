@@ -1,6 +1,9 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.old;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.teamcode.CustomTelemetryLogger;
+import org.firstinspires.ftc.teamcode.RobotBase;
 
 import java.io.IOException;
 import java.util.Date;
@@ -11,8 +14,8 @@ import java.util.Date;
  * Gamepad2 Arm
  * author: WolfsonRobotics
  */
-@TeleOp(name = "debugjava")
-public class DebugJava extends RobotBase {
+//@TeleOp(name = "debugjavabad")
+public class DebugJavaBad extends RobotBase {
 
     double powerFactor = 1.25;
     private CustomTelemetryLogger logger;
@@ -184,30 +187,6 @@ public class DebugJava extends RobotBase {
                 return false;
         }
     }
-    private int ticsToDegrees(int tics)
-    {
-        int degrees = 0;
-        double intCon = 8.727272;
-        double robotLength = 13.62;
-        double distUnit = (robotLength) / (Math.cos(45));
-        degrees = Math.round((float)(((((tics /intCon)*90)/distUnit)/1.75)));
-        return degrees;
-    }
-    /*
-    private void moveServo(Servo servo, double targetPosition, long speed) {
-        if (Math.abs(servo.getPosition() - targetPosition) > 0.01) {
-            // Move the servo towards the target position slowly
-            if (servo.getPosition() < targetPosition) {
-                servo.setPosition(servo.getPosition() + .01);
-            } else {
-                servo.setPosition(servo.getPosition() - .01);
-            }
-
-            // Sleep for a short duration (adjust as needed)
-            sleep(speed); // Sleep for 100 milliseconds (adjust for desired speed)
-        }
-
-    }*/
 
     private void moveBot(float vertical, float pivot, float horizontal) {
         pivot *= 0.5;
