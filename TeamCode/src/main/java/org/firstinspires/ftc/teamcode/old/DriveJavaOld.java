@@ -1,23 +1,17 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.old;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.io.IOException;
-import java.util.*;
 /**
  * Gamepad 1 drive trains
  * Gamepad2 Arm
  * author: WolfsonRobotics
  */
-@TeleOp(name = "Dive1")
-public class DriveJava extends LinearOpMode {
+//@TeleOp(name = "Dive1Old")
+public class DriveJavaOld extends LinearOpMode {
     private DcMotor right_drive1;
     private DcMotor right_drive2;
     private DcMotor left_drive1;
@@ -33,6 +27,8 @@ public class DriveJava extends LinearOpMode {
 
         right_drive1.setDirection(DcMotorSimple.Direction.REVERSE);
         right_drive2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
 
     }
 
