@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.old;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -13,7 +13,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import java.util.ArrayList;
 
 
-public abstract class AutoJava extends LinearOpMode {
+public abstract class AutoJavaOld extends LinearOpMode {
 
 
     protected DcMotorEx right_drive1;
@@ -42,7 +42,7 @@ public abstract class AutoJava extends LinearOpMode {
     protected boolean blue = false;
 
 
-    protected AutoJava(boolean blue) {
+    protected AutoJavaOld(boolean blue) {
         this.blue = blue;
     }
 
