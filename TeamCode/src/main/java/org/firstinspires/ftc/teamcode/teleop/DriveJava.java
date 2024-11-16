@@ -9,16 +9,18 @@ import org.firstinspires.ftc.teamcode.RobotBase;
 @TeleOp(name = "DriveJava")
 public class DriveJava extends RobotBase {
 
-    private final double powerFactor = 1.25;
+    private double powerFactor = 1.25;
     private final double manualArmSpeed = 0.01;
 
     private final double liftStationaryPower = 0.05;
     private final int liftRangeTolerance = 6;
     private final int minLift = -16;
-    private final int maxLift = -1585;
+    private final int maxLift = -4320;
 
-    private final double maxArm = 0.3995;
-    private final double minArm = 0.055;
+    private final double maxArm = 0.021;
+    private final double minArm = 0.065;
+
+    boolean bumperPress= false;
 
     @Override
     public void runOpMode() {
@@ -27,7 +29,7 @@ public class DriveJava extends RobotBase {
         telemetry.update();
 
         waitForStart();
-        double currentArmPosition = 0.35;
+        double currentArmPosition = 0.65;
         int cachedLiftPos = 0;
 
         boolean startedMoving = false;
@@ -107,13 +109,13 @@ public class DriveJava extends RobotBase {
                 currentArmPosition += this.manualArmSpeed; // increase by a small step
 //                if(currentArmPosition > 1) currentArmPosition = 1;
 //                if (currentArmPosition >= 0.4288) currentArmPosition = 0.4288;
-                if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
+//                if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
             } else if (gamepad2.left_stick_y < 0) {
                 currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
 //                if(currentArmPosition < -1) currentArmPosition = -1;
-                if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
+//                if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
             }
-
+/*
             if (gamepad2.dpad_up) {
                 // for hang even further back than this
 //                currentArmPosition = 0.4288;
@@ -124,14 +126,16 @@ public class DriveJava extends RobotBase {
             }
             if (gamepad2.dpad_right) {
                 currentArmPosition = 0.241125;
-            }
+            }*/
             // code lift preset(s) here later
             if (gamepad2.y) {
 
             }
+            speedchange();
 
             telemetry.addData("arm sent pos: ", currentArmPosition);
             telemetry.addData("arm pos actual: ", arm.getPosition());
+            telemetry.addData("claw pos: ", claw.getPosition());
             telemetry.addData("lift power sent: ", gamepad2.right_stick_y);
             telemetry.addData("lift pos sent: ", cachedLiftPos);
             telemetry.addData("lift pos actual: ", lift.getCurrentPosition());
@@ -140,31 +144,57 @@ public class DriveJava extends RobotBase {
             telemetry.addData("lf_drive power: ", lf_drive.getPower());
             telemetry.addData("rf_drive pos: ", rf_drive.getCurrentPosition());
             telemetry.addData("rf_drive power: ", rf_drive.getPower());
-            telemetry.update();
+            telemetry.addData("gamepad2 right trigger: ", gamepad2.right_trigger);
+            telemetry.addData("gamepad2 left trigger: ", gamepad2.left_trigger);
+            telemetry.addData("gamepad2 right stick y: ", gamepad2.right_stick_y);
+            telemetry.addData("gamepad1 left stick x: ", gamepad1.left_stick_x);
+            telemetry.addData("gamepad1 left stick y: ", gamepad1.left_stick_y);
+            telemetry.addData("gamepad1 right stick x: ", gamepad1.right_stick_x);
+            telemetry.addData("gamepad1 right stick y: ", gamepad1.right_stick_y);
 
             // grab claw
-            if (gamepad2.left_trigger > 0) {
+            if (gamepad2.left_trigger > 0.1) {
 //                claw.setPosition(0.18);
-                claw.setPosition(this.closedClawPos);
+                //close
+                claw.setPosition(0.9);
             }
             // drop
-            if (gamepad2.right_trigger > 0) {
+
+            if (gamepad2.right_trigger > 0.1) {
 //                claw.setPosition(0.06);
-                claw.setPosition(this.openClawPos);
+                //open
+                claw.setPosition(0.75);
             }
 
 
             moveBot(-gamepad1.left_stick_y, (gamepad1.right_stick_x), gamepad1.left_stick_x);
 //            moveBot(-gamepad1.left_stick_y, (gamepad1.right_stick_x), gamepad1.left_stick_x);
+            telemetry.update();
         }
     }
 
+    private void speedchange()
+    {
+        if(!bumperPress) {
+            boolean up = false;
+            if (gamepad1.right_bumper || gamepad1.left_bumper) {
+                up = gamepad1.right_bumper;
+                bumperPress = true;
 
+                if (up) powerFactor= Math.min(powerFactor + 0.1, 1);
+                else powerFactor= Math.max(powerFactor - 0.1, 0.1);
+                telemetry.addData("power factor:", powerFactor);
+
+            }
+        }
+        if(bumperPress && !gamepad1.right_bumper && !gamepad1.left_bumper) bumperPress = false;
+    }
     private void moveBot(float vertical, float pivot, float horizontal) {
         pivot *= 0.6;
         rf_drive.setPower(powerFactor * (-pivot + (vertical - horizontal)));
         rb_drive.setPower(powerFactor * (-pivot + vertical + horizontal));
         lf_drive.setPower(powerFactor * (pivot + vertical + horizontal));
         lb_drive.setPower(powerFactor * (pivot + (vertical - horizontal)));
+
     }
 }
