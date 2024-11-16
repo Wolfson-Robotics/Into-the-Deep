@@ -34,8 +34,12 @@ public abstract class RobotBase extends LinearOpMode {
 
     protected final double intCon = 8.727272;
 
-    protected final double closedClawPos = 0.26;
-    protected final double openClawPos = -0.1;
+//    protected final double closedClawPos = -1;
+//    protected final double openClawPos = 1;
+//    protected final double closedClawPos = 0.26;
+//    protected final double openClawPos = -0.1;
+    protected final double closedClawPos = 0.5;
+    protected final double openClawPos = -0.5;
 
 
     protected void initMotors() {
@@ -45,21 +49,25 @@ public abstract class RobotBase extends LinearOpMode {
         lf_drive = hardwareMap.get(DcMotorEx.class, "left_drive1");
         lb_drive = hardwareMap.get(DcMotorEx.class, "left_drive2");
 
-        rf_drive.setDirection(DcMotorSimple.Direction.REVERSE);
-        rb_drive.setDirection(DcMotorSimple.Direction.REVERSE);
+        lf_drive.setDirection(DcMotorSimple.Direction.REVERSE);
+        lb_drive.setDirection(DcMotorSimple.Direction.REVERSE);
 
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         arm = hardwareMap.get(Servo.class, "arm");
         claw = hardwareMap.get(Servo.class, "claw");
 
+//        claw.setDirection(Servo.Direction.REVERSE);
+//        claw.setPosition(-0.82);
+//        claw.scaleRange(0.6, 0.9);
+        claw.setPosition(0.9);
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        arm.setPosition(0.35);
+        arm.setPosition(0.65);
+        setBrakeMotors();
 
     }
-
     public void setBrakeMotors() {
         rf_drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rb_drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

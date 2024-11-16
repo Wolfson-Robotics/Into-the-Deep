@@ -25,7 +25,7 @@ public abstract class AutoJava extends RobotBase {
         super.initMotors();
         this.setBrakeMotors();
         arm.setPosition(0.6);
-        claw.setPosition(this.closedClawPos);
+        claw.setPosition(0.9);
     }
 
 

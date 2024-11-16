@@ -29,10 +29,10 @@ public class DebugJava extends RobotBase {
 
     private double liftStationaryPower = 0.05;
     private int minLift = -16;
-    private int maxLift = -1585;
+    private int maxLift = -2000000;
 
-    private double maxArm = 0.3995;
-    private double minArm = 0.055;
+    private double maxArm = 0.21;
+    private double minArm = 0.065;
     private double manualArmSpeed = 0.01;
 
     private boolean buttonPressed = false;
@@ -45,7 +45,7 @@ public class DebugJava extends RobotBase {
 
         telemetry.addLine("Waiting for start");
         telemetry.update();
-        double currentArmPosition = 0.55; // start position for armServo
+        double currentArmPosition = 0.65; // start position for armServo
         double currentElbowPosition = .7;
         boolean buttonPressed = false;
         //variables for debug
@@ -69,8 +69,16 @@ public class DebugJava extends RobotBase {
         debug = true;
         telemetry.addLine("debug on");
         telemetry.update();
-
-
+        /*
+        claw.setPosition(-1);
+        telemetry.addLine(" off");
+        telemetry.update();
+        sleep(2000);
+        claw.setPosition(1);
+        telemetry.addLine(" on");
+        telemetry.update();*/
+        //wheelTest();
+        clawTest();
         boolean startedMoving = false;
         boolean alreadySwitchedMode = false;
         boolean minLiftAchieved = false;
@@ -91,7 +99,10 @@ public class DebugJava extends RobotBase {
                 telemetry.update();
 
             }
+
+
             while (opModeIsActive()) {
+
                 if (debug) {
 
                     // Dpad up starts the logging pipeline
@@ -103,8 +114,11 @@ public class DebugJava extends RobotBase {
                         telemetry.addLine("log start");
                         telemetry.update();
                     }
-                    if ((!gamepad1.dpad_down && !gamepad1.dpad_right && !gamepad1.dpad_left) && depadPressed)
+                    if ((!gamepad1.dpad_down && !gamepad1.dpad_right && !gamepad1.dpad_left && !gamepad1.a) && depadPressed)
                         depadPressed = false;
+                    if (gamepad1.a && !depadPressed) {
+                        moves += " arm.setPosition(" + arm.getPosition() + ");\n";
+                    }
                     // Dpad down starts logging the movement
                     if (gamepad1.dpad_down && !depadPressed) {
                         depadPressed = true;
@@ -181,12 +195,14 @@ public class DebugJava extends RobotBase {
                         buttonPressed = false;
                     }
 
-                    if (gamepad2.left_trigger > 0) {claw.setPosition(this.closedClawPos);  clawChanged = 1;} //grab claw
-                    if (gamepad2.right_trigger > 0) {claw.setPosition(this.openClawPos); clawChanged = 2;}//drop
+                 //   if (gamepad2.left_trigger > 0) {claw.setPosition(this.closedClawPos);  clawChanged = 1;} //grab claw
+                 //   if (gamepad2.right_trigger > 0) {claw.setPosition(this.openClawPos); clawChanged = 2;}//drop
 
 /* drivejava driving mechanisms here */
 
                 moveServo(arm, currentArmPosition, 20);
+                telemetry.addData("lift height:", lift.getCurrentPosition());
+                telemetry.addData("lift power:", lift.getPower());
                 if (gamepad2.right_stick_y != 0) {
 //                if (lift.getCurrentPosition() <= -3900) {
 //                    moveMotor(lift, -3900, 0.05);
@@ -337,6 +353,56 @@ public class DebugJava extends RobotBase {
         lf_drive.setPower(powerFactor * (pivot + vertical + horizontal));
         lb_drive.setPower(powerFactor * (pivot + (vertical - horizontal)));
 
+    }
+    void wheelTest() {
+        telemetry.addLine("testing left drive 1 forward");
+        telemetry.update();
+        lf_drive.setPower(0.25);
+        sleep(2000);
+        lf_drive.setPower(0);
+        telemetry.addLine("testing left drive 1 reverse");
+        telemetry.update();
+        lf_drive.setPower(-0.25);
+        sleep(2000);
+        lf_drive.setPower(0);
+        telemetry.addLine("testing left drive 2 forward");
+        telemetry.update();
+        lb_drive.setPower(0.25);
+        sleep(2000);
+        lb_drive.setPower(0);
+        telemetry.addLine("testing left drive 2 reverse");
+        telemetry.update();
+        lb_drive.setPower(-0.25);
+        sleep(2000);
+        lb_drive.setPower(0);
+        telemetry.addLine("testing right drive 1 forward");
+        telemetry.update();
+        rf_drive.setPower(0.25);
+        sleep(2000);
+        rf_drive.setPower(0);
+        telemetry.addLine("testing right drive 1 reverse");
+        telemetry.update();
+        rf_drive.setPower(-0.25);
+        sleep(2000);
+        rf_drive.setPower(0);
+        telemetry.addLine("testing right drive 2 forward");
+        telemetry.update();
+        rb_drive.setPower(0.25);
+        sleep(2000);
+        rb_drive.setPower(0);
+        telemetry.addLine("testing right drive 2 reverse");
+        telemetry.update();
+        rb_drive.setPower(-0.25);
+        sleep(2000);
+        rb_drive.setPower(0);
+    }
+    void clawTest() {
+        for (double i = 1; i >-1; i -= 0.01) {
+            claw.setPosition(i);
+            telemetry.addData("pos: ", i);
+            telemetry.update();
+            sleep(1500);
+        }
     }
 
 }
