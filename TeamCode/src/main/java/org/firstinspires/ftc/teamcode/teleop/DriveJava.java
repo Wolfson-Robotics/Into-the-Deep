@@ -17,8 +17,10 @@ public class DriveJava extends RobotBase {
     private final int minLift = -16;
     private final int maxLift = -4320;
 
-    private final double maxArm = 0.021;
-    private final double minArm = 0.065;
+//    private final double maxArm = 0.021;
+//    private final double minArm = 0.065;
+    private final double maxArm = 0.8365;
+    private final double minArm = 0.5145;
 
     boolean bumperPress= false;
 
@@ -105,15 +107,15 @@ public class DriveJava extends RobotBase {
             }
 
 
-            if (gamepad2.left_stick_y > 0) {
+            if (gamepad2.left_stick_y < 0) {
                 currentArmPosition += this.manualArmSpeed; // increase by a small step
 //                if(currentArmPosition > 1) currentArmPosition = 1;
 //                if (currentArmPosition >= 0.4288) currentArmPosition = 0.4288;
 //                if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
-            } else if (gamepad2.left_stick_y < 0) {
+            } else if (gamepad2.left_stick_y > 0) {
                 currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
 //                if(currentArmPosition < -1) currentArmPosition = -1;
-//                if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
+                if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
             }
 /*
             if (gamepad2.dpad_up) {
@@ -127,6 +129,15 @@ public class DriveJava extends RobotBase {
             if (gamepad2.dpad_right) {
                 currentArmPosition = 0.241125;
             }*/
+            if (gamepad2.dpad_down) {
+                currentArmPosition = 0.8355;
+            }
+            if (gamepad2.dpad_left) {
+                currentArmPosition = 0.655;
+            }
+            if (gamepad2.dpad_up) {
+                currentArmPosition = 0.55;
+            }
             // code lift preset(s) here later
             if (gamepad2.y) {
 
@@ -167,7 +178,8 @@ public class DriveJava extends RobotBase {
             }
 
 
-            moveBot(-gamepad1.left_stick_y, (gamepad1.right_stick_x), gamepad1.left_stick_x);
+            moveBot(-gamepad1.left_stick_y, (gamepad1.right_stick_x), -gamepad1.left_stick_x);
+            hang.setPower(gamepad1.left_trigger - gamepad1.right_trigger);
 //            moveBot(-gamepad1.left_stick_y, (gamepad1.right_stick_x), gamepad1.left_stick_x);
             telemetry.update();
         }
@@ -189,12 +201,13 @@ public class DriveJava extends RobotBase {
         }
         if(bumperPress && !gamepad1.right_bumper && !gamepad1.left_bumper) bumperPress = false;
     }
+
     private void moveBot(float vertical, float pivot, float horizontal) {
         pivot *= 0.6;
         rf_drive.setPower(powerFactor * (-pivot + (vertical - horizontal)));
         rb_drive.setPower(powerFactor * (-pivot + vertical + horizontal));
         lf_drive.setPower(powerFactor * (pivot + vertical + horizontal));
         lb_drive.setPower(powerFactor * (pivot + (vertical - horizontal)));
-
     }
+
 }
