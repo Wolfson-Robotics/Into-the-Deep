@@ -18,7 +18,8 @@ public abstract class RobotBase extends LinearOpMode {
     protected DcMotorEx lf_drive;
     protected DcMotorEx lb_drive;
 
-    protected DcMotor lift;
+    protected DcMotorEx lift;
+    protected DcMotorEx hang;
 
     protected Servo arm;
     protected Servo claw;
@@ -53,6 +54,7 @@ public abstract class RobotBase extends LinearOpMode {
         lb_drive.setDirection(DcMotorSimple.Direction.REVERSE);
 
         lift = hardwareMap.get(DcMotorEx.class, "lift");
+        hang = hardwareMap.get(DcMotorEx.class, "hang");
         arm = hardwareMap.get(Servo.class, "arm");
         claw = hardwareMap.get(Servo.class, "claw");
 

@@ -78,7 +78,7 @@ public class DebugJava extends RobotBase {
         telemetry.addLine(" on");
         telemetry.update();*/
         //wheelTest();
-        clawTest();
+//        clawTest();
         boolean startedMoving = false;
         boolean alreadySwitchedMode = false;
         boolean minLiftAchieved = false;
