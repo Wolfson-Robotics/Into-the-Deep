@@ -24,8 +24,9 @@ public abstract class AutoJava extends RobotBase {
     public void initMotors() {
         super.initMotors();
         this.setBrakeMotors();
+        powerFactor = 0.6;
         arm.setPosition(0.6);
-        claw.setPosition(0.9);
+        claw.setPosition(0.46);
     }
 
 
@@ -42,15 +43,15 @@ public abstract class AutoJava extends RobotBase {
 
         if (horizontal != 0) {
             posNeg = (horizontal > 0) ? 1 : -1;
-            motorTics = lf_drive.getCurrentPosition() + (int) ((distIN * intCon) * (-1*posNeg));
+            motorTics = lf_drive.getCurrentPosition() + (int) ((distIN * intCon) * (posNeg));
             if (posNeg == 1) {
                 // right goes negative
-                while ((lf_drive.getCurrentPosition() > motorTics) && opModeIsActive()) {
+                while ((lf_drive.getCurrentPosition() < motorTics) && opModeIsActive()) {
                     idle();
                 }
             } else {
                 // left goes positive
-                while ((lf_drive.getCurrentPosition() < motorTics) && opModeIsActive()) {
+                while ((lf_drive.getCurrentPosition() > motorTics) && opModeIsActive()) {
                     idle();
                 }
             }
