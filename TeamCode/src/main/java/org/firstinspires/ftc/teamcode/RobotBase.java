@@ -61,13 +61,13 @@ public abstract class RobotBase extends LinearOpMode {
 //        claw.setDirection(Servo.Direction.REVERSE);
 //        claw.setPosition(-0.82);
 //        claw.scaleRange(0.6, 0.9);
-        claw.setPosition(0.9);
+        claw.setPosition(0.46);
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        arm.setPosition(0.65);
-        setBrakeMotors();
+        arm.setPosition(0.45);
+        //setBrakeMotors();
 
     }
     public void setBrakeMotors() {

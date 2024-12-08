@@ -50,6 +50,7 @@ public class DebugJava extends RobotBase {
         boolean buttonPressed = false;
         //variables for debug
         String moves = "";
+        powerFactor = 0.6;
         double startposright = rf_drive.getCurrentPosition();
         double startposleft = lf_drive.getCurrentPosition();
         double armPastPos = 0;
@@ -154,11 +155,11 @@ public class DebugJava extends RobotBase {
                         switch (clawChanged)
                         {
                             case 1:
-                                moves += "claw.setPosition(" + this.closedClawPos + ");\nsleep(500);\n";
+                                moves += "claw.setPosition(" + 0.46 + ");\nsleep(500);\n";
                                 clawChanged = 0;
                                 break;
                             case 2:
-                                moves += "claw.setPosition(" + this.openClawPos + ");\nsleep(500);\n";
+                                moves += "claw.setPosition(" + 0.36 + ");\nsleep(500);\n";
                                 clawChanged = 0;
                                 break;
 
@@ -180,6 +181,20 @@ public class DebugJava extends RobotBase {
                         turn = false;
 
                     }
+
+                    if (gamepad2.left_stick_y < 0) {
+                        currentArmPosition += this.manualArmSpeed; // increase by a small step
+//                if(currentArmPosition > 1) currentArmPosition = 1;
+//                if (currentArmPosition >= 0.4288) currentArmPosition = 0.4288;
+//                if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
+                    } else if (gamepad2.left_stick_y > 0) {
+                        currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
+//                if(currentArmPosition < -1) currentArmPosition = -1;
+                        // if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
+                    }
+                    moveServo(arm, currentArmPosition, 20);
+                    telemetry.addData("armPos:", arm.getPosition());
+                    telemetry.update();
                     // Dpad up actually sends the data to the FileWriter
                     if (gamepad1.dpad_right && !depadPressed) {
                         depadPressed = true;
@@ -200,9 +215,9 @@ public class DebugJava extends RobotBase {
 
 /* drivejava driving mechanisms here */
 
-                moveServo(arm, currentArmPosition, 20);
-                telemetry.addData("lift height:", lift.getCurrentPosition());
-                telemetry.addData("lift power:", lift.getPower());
+
+                // telemetry.addData("lift height:", lift.getCurrentPosition());
+                //telemetry.addData("lift power:", lift.getPower());
                 if (gamepad2.right_stick_y != 0) {
 //                if (lift.getCurrentPosition() <= -3900) {
 //                    moveMotor(lift, -3900, 0.05);
@@ -215,7 +230,7 @@ public class DebugJava extends RobotBase {
                             minLiftAchieved = true;
                         }
                     } else if (lift.getCurrentPosition() <= this.maxLift && gamepad2.right_stick_y < 0 && startedMoving) {
-                        telemetry.addLine("controlling max lift");
+                        //telemetry.addLine("controlling max lift");
                         alreadySwitchedMode = false;
                         cachedLiftPos = this.maxLift;
                         if (!maxLiftAchieved) {
@@ -224,7 +239,7 @@ public class DebugJava extends RobotBase {
                         }
                     } else {
 //                    moveMotor(lift, -1565, 0.05);
-                        telemetry.addLine("user stick to lift");
+                       // telemetry.addLine("user stick to lift");
                         startedMoving = true;
                         minLiftAchieved = false;
                         maxLiftAchieved = false;
@@ -238,23 +253,25 @@ public class DebugJava extends RobotBase {
 
                 } else {
                     if (startedMoving) {
-                        telemetry.addLine("Not receiving input right now maintaining lift position");
+                      //  telemetry.addLine("Not receiving input right now maintaining lift position");
                         alreadySwitchedMode = false;
                         moveMotor(lift, cachedLiftPos, this.liftStationaryPower, true);
                     }
                 }
 
-
-                if (gamepad2.left_stick_y > 0) {
-                    currentArmPosition += this.manualArmSpeed; // increase by a small step
-//                if(currentArmPosition > 1) currentArmPosition = 1;
-//                if (currentArmPosition >= 0.4288) currentArmPosition = 0.4288;
-                    if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
-                } else if (gamepad2.left_stick_y < 0) {
-                    currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
-//                if(currentArmPosition < -1) currentArmPosition = -1;
-                    if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
+                if (gamepad2.left_trigger > 0.1) {
+//                claw.setPosition(0.18);
+                    //close
+                    claw.setPosition(0.46);
                 }
+                // drop
+
+                if (gamepad2.right_trigger > 0.1) {
+//                claw.setPosition(0.06);
+                    //open
+                    claw.setPosition(0.36);
+                }
+
 
                     switch (allowOtherMovement) {
                         case 1:

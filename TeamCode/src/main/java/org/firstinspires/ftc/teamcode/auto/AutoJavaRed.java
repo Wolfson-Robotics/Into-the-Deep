@@ -12,6 +12,33 @@ public class AutoJavaRed extends AutoJava {
     @Override
     public void runOpMode() {
         this.commonAutoInit();
+        moveBot(47.78125398177117,0,0,1);
+        arm.setPosition(0.6400000000000001);
+        moveBot(50,1, 0, 0);
+        sleep(150);
+        turnBot(-33);
+        sleep(200);
+        moveBot(20,1, 0, 0);
+        sleep(150);
+        turnBot(10);
+        sleep(250);
+        moveMotor(lift, -4217, 0.25, true);
+        powerFactor= 0.4;
+        sleep(100);
+        moveBot(43,1, 0, 0);
+        sleep(100);
+        arm.setPosition(0.75);
+        sleep(100);
+        turnBot(-33);
+        claw.setPosition(0.36);
+        sleep(250);
+        arm.setPosition(0.5);
+        moveBot(46.40625386718783,-1, 0, 0);
+        sleep(500);
+        moveMotor(lift, -10, 0.25, true);
+        powerFactor = 1;
+
+
         /*
         moveBot(35, 1, 0, 0);
         telemetry.addData("lf_drive pos: ", lf_drive.getCurrentPosition());
@@ -34,7 +61,7 @@ public class AutoJavaRed extends AutoJava {
         telemetry.update();
         sleep(10000);*/
 //        moveMotor(lift, -1300, 0.05);
-        liftBot(2);
+        //liftBot(2);
         /*
         sleep(1000);
 //        moveMotor(lift, -800);
