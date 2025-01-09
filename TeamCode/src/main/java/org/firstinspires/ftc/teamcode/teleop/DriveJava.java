@@ -2,27 +2,28 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.RobotBase;
 
 @TeleOp(name = "DriveJava")
 public class DriveJava extends RobotBase {
 
-    private double powerFactor = 1;
+//    private double powerFactor = 1;
+    private double powerFactor = 0.7095;
     private final double manualArmSpeed = 0.01;
 
     private final double liftStationaryPower = 0.05;
     private final int liftRangeTolerance = 6;
-    private final int minLift = -10;
-    private final int maxLift = -4315;
+    private final int minLift = -20;
+    private final int maxLift = -4115;
 
 //    private final double maxArm = 0.021;
 //    private final double minArm = 0.065;
-    private final double maxArm = 0.8365;
-    private final double minArm = 0.5145;
+    private final double maxArm = 0.945;
+    private final double minArm = 0.6055;
 
-    boolean bumperPress= false;
+
+    boolean bumperPress = false;
 
     @Override
     public void runOpMode() {
@@ -111,11 +112,11 @@ public class DriveJava extends RobotBase {
                 currentArmPosition += this.manualArmSpeed; // increase by a small step
 //                if(currentArmPosition > 1) currentArmPosition = 1;
 //                if (currentArmPosition >= 0.4288) currentArmPosition = 0.4288;
-//                if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
+                if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
             } else if (gamepad2.left_stick_y > 0) {
                 currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
 //                if(currentArmPosition < -1) currentArmPosition = -1;
-               // if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
+                if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
             }
 /*
             if (gamepad2.dpad_up) {
@@ -143,7 +144,6 @@ public class DriveJava extends RobotBase {
 
             }
             speedchange();
-            /*
             telemetry.addData("arm sent pos: ", currentArmPosition);
             telemetry.addData("arm pos actual: ", arm.getPosition());
             telemetry.addData("claw pos: ", claw.getPosition());
@@ -161,23 +161,21 @@ public class DriveJava extends RobotBase {
             telemetry.addData("gamepad1 left stick x: ", gamepad1.left_stick_x);
             telemetry.addData("gamepad1 left stick y: ", gamepad1.left_stick_y);
             telemetry.addData("gamepad1 right stick x: ", gamepad1.right_stick_x);
-            telemetry.addData("gamepad1 right stick y: ", gamepad1.right_stick_y);*/
-           // telemetry.addData("lf_drive", lf_drive.getCurrentPosition());
-            //telemetry.addData("lf target",lf_drive.getCurrentPosition() + (int) ((20.00 * intCon)));
+            telemetry.addData("gamepad1 right stick y: ", gamepad1.right_stick_y);
+            telemetry.addData("lf_drive", lf_drive.getCurrentPosition());
+            telemetry.addData("lf target",lf_drive.getCurrentPosition() + (int) ((20.00 * intCon)));
             telemetry.addData("power factor:", powerFactor);
 
             // grab claw
             if (gamepad2.left_trigger > 0.1) {
-//                claw.setPosition(0.18);
                 //close
-                claw.setPosition(0.46);
+                claw.setPosition(this.closedClaw);
             }
-            // drop
 
+            // drop claw
             if (gamepad2.right_trigger > 0.1) {
-//                claw.setPosition(0.06);
                 //open
-                claw.setPosition(0.36);
+                claw.setPosition(this.openClaw);
             }
 
 
@@ -196,8 +194,8 @@ public class DriveJava extends RobotBase {
                 up = gamepad1.right_bumper;
                 bumperPress = true;
 
-                if (up) powerFactor= Math.min(powerFactor + 0.1, 1);
-                else powerFactor= Math.max(powerFactor - 0.1, 0.1);
+                if (up) powerFactor = Math.min(powerFactor + 0.1, 1);
+                else powerFactor = Math.max(powerFactor - 0.1, 0.1);
                 telemetry.addData("power factor:", powerFactor);
 
             }
@@ -206,7 +204,8 @@ public class DriveJava extends RobotBase {
     }
 
     private void moveBot(float vertical, float pivot, float horizontal) {
-        pivot *= 0.6;
+//        pivot *= 0.6;
+        pivot *= 0.855;
         rf_drive.setPower(powerFactor * (-pivot + (vertical - horizontal)));
         rb_drive.setPower(powerFactor * (-pivot + vertical + horizontal));
         lf_drive.setPower(powerFactor * (pivot + vertical + horizontal));

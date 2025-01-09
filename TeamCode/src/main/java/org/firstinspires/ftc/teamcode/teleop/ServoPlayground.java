@@ -15,6 +15,12 @@ public class ServoPlayground extends RobotBase {
     public void runOpMode() {
         this.initMotors();
         telemetry.addLine("Waiting for start");
+        telemetry.addLine("Manual:");
+        telemetry.addLine("Use dpad up and dpad down to cycle through digits and motors/servos");
+        telemetry.addLine("Use dpad right to add new digits to the position");
+        telemetry.addLine("Use dpad left to go to the next step");
+        telemetry.addLine("Press a to execute the *newest* added position (that is, when each added position is executed, it is removed from the current queue and then the second to last added position is the newest position that it will navigate to)");
+        telemetry.addLine("Press y to clear all positions");
         telemetry.update();
 
         waitForStart();

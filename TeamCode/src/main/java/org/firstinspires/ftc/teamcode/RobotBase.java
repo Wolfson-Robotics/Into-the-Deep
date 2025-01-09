@@ -19,7 +19,7 @@ public abstract class RobotBase extends LinearOpMode {
     protected DcMotorEx lb_drive;
 
     protected DcMotorEx lift;
-    protected DcMotorEx hang;
+//    protected DcMotorEx hang;
 
     protected Servo arm;
     protected Servo claw;
@@ -34,13 +34,16 @@ public abstract class RobotBase extends LinearOpMode {
     protected final double TICKS_PER_ROTATION = 288;
 
     protected final double intCon = 8.727272;
+    protected final double ticsPerInch = 6.1397574560909;
+    // constant is 230/90 (since regular turnBot(230) is 90 degrees)
+    protected final double degConv = 2.5555555555555555555555555555556;
 
 //    protected final double closedClawPos = -1;
 //    protected final double openClawPos = 1;
 //    protected final double closedClawPos = 0.26;
 //    protected final double openClawPos = -0.1;
-    protected final double closedClawPos = 0.5;
-    protected final double openClawPos = -0.5;
+    protected final double closedClaw = 0.46;
+    protected final double openClaw = 0.30;
 
 
     protected void initMotors() {
@@ -54,14 +57,14 @@ public abstract class RobotBase extends LinearOpMode {
         lb_drive.setDirection(DcMotorSimple.Direction.REVERSE);
 
         lift = hardwareMap.get(DcMotorEx.class, "lift");
-        hang = hardwareMap.get(DcMotorEx.class, "hang");
+//        hang = hardwareMap.get(DcMotorEx.class, "hang");
         arm = hardwareMap.get(Servo.class, "arm");
         claw = hardwareMap.get(Servo.class, "claw");
 
 //        claw.setDirection(Servo.Direction.REVERSE);
 //        claw.setPosition(-0.82);
 //        claw.scaleRange(0.6, 0.9);
-        claw.setPosition(0.46);
+        claw.setPosition(this.closedClaw);
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
