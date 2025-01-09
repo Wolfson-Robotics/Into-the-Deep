@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.RobotBase;
 import org.firstinspires.ftc.teamcode.old.PixelDetection;
-
+import com.qualcomm.robotcore.hardware.DcMotor;
 import java.util.ArrayList;
 import java.util.function.Supplier;
 
@@ -25,6 +25,7 @@ public abstract class AutoJava extends RobotBase {
     public void initMotors() {
         super.initMotors();
         this.setBrakeMotors();
+        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         powerFactor = 0.6;
         arm.setPosition(0.6);
         claw.setPosition(0.46);

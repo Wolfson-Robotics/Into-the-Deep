@@ -65,7 +65,7 @@ public abstract class RobotBase extends LinearOpMode {
 //        claw.setPosition(-0.82);
 //        claw.scaleRange(0.6, 0.9);
         claw.setPosition(this.closedClaw);
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+       // lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
 
