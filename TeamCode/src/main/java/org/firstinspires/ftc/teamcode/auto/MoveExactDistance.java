@@ -90,9 +90,11 @@ public class MoveExactDistance extends AutoJava {
 
                 // Display it for the driver.
                 telemetry.addData("Path1", "Running to %7d :%7d", newLeftTarget, newRightTarget);
-                telemetry.addData("Path2", "Running at %7d :%7d",
+                telemetry.addData("Path2", "Running at %7d :%7d  %7d :%7d",
                         lf_drive.getCurrentPosition(),
-                        rf_drive.getCurrentPosition());
+                        rf_drive.getCurrentPosition(),
+                        lb_drive.getCurrentPosition(),
+                        rb_drive.getCurrentPosition());
                 telemetry.update();
             }
 

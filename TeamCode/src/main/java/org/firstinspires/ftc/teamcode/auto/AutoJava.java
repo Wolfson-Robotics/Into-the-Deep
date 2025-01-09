@@ -6,6 +6,7 @@ import org.firstinspires.ftc.teamcode.RobotBase;
 import org.firstinspires.ftc.teamcode.old.PixelDetection;
 
 import java.util.ArrayList;
+import java.util.function.Supplier;
 
 public abstract class AutoJava extends RobotBase {
 
@@ -30,7 +31,16 @@ public abstract class AutoJava extends RobotBase {
     }
 
 
-    protected void moveBot(double distIN, double vertical, double pivot, double horizontal) {
+//    protected void moveAndTurnBot(double distINAbs, ) {
+//
+//    }
+
+    // pos vertical is forward, neg vertical is negative
+    // pos pivot is clockwise, neg pivot is counterclockwise
+    // pos horizontal is right, neg horizontal is left
+    // notes:
+    // rf_drive, when going forward, goes into the negative direction positionally
+    protected void moveBotOld(double distIN, double vertical, double pivot, double horizontal) {
 
         // 23 motor tics = 1 IN
         int motorTics;
@@ -56,13 +66,14 @@ public abstract class AutoJava extends RobotBase {
                 }
             }
         } else {
+            posNeg = vertical >= 0 ? -1 : 1;
             motorTics = rf_drive.getCurrentPosition() + (int) ((distIN * intCon) * posNeg);
-            if (posNeg == 1) {
-                while (rf_drive.getCurrentPosition() < motorTics && opModeIsActive()) {
+            if (posNeg == -1) {
+                while (rf_drive.getCurrentPosition() > motorTics && opModeIsActive()) {
                     idle();
                 }
             } else {
-                while ((rf_drive.getCurrentPosition() > motorTics) && opModeIsActive()) {
+                while ((rf_drive.getCurrentPosition() < motorTics) && opModeIsActive()) {
                     idle();
                 }
             }
@@ -70,6 +81,69 @@ public abstract class AutoJava extends RobotBase {
         }
         removePower();
 
+    }
+
+
+    // 12 inches (or a foot) is 73.6770894730908 robot inches
+    protected void moveBot(double in, double vertical, double pivot, double horizontal) {
+//        moveBotOld((in/12d) * 73.6770894730908, vertical, pivot, horizontal);
+        moveBotOld(in*ticsPerInch, vertical, pivot, horizontal);
+    }
+
+    protected void moveBotDiag(double horizIn, double vertIn, double vertical, double horizontal) {
+        double rfPower = vertical - horizontal, rbPower = vertical + horizontal,
+                lfPower = vertical + horizontal, lbPower = vertical - horizontal;
+//        double rfPower = (vertical * vertIn) + (-horizontal * horizIn);
+//        double rbPower = (vertical * vertIn) + (horizontal * horizIn);
+
+        int vertNeg = (vertical >= 0) ? -1 : 1, horizNeg = (horizontal > 0) ? 1 : -1;
+        int vertTics = rf_drive.getCurrentPosition() + (int) ((vertIn * intCon) * vertNeg);
+        int horizTics = lf_drive.getCurrentPosition() + (int) ((horizIn * intCon) * (horizNeg));
+        Supplier<Boolean> vertCond = vertNeg == -1 ? () -> (rf_drive.getCurrentPosition() > vertTics && opModeIsActive()) : () -> (rf_drive.getCurrentPosition() < vertTics) && opModeIsActive();
+        Supplier<Boolean> horizCond = horizNeg == 1 ? () -> (lf_drive.getCurrentPosition() < horizTics) && opModeIsActive() : () -> (lf_drive.getCurrentPosition() > horizTics) && opModeIsActive();
+/*
+        boolean goVert = true, goHoriz = true;
+        while (true) {
+            if (!vertCond.get()) {
+                rfPower = (-horizontal * horizIn);
+                rbPower = (horizontal * horizIn);
+                goVert = false;
+            }
+            if (!horizCond.get()) {
+                rfPower = (vertical * vertIn);
+                rbPower = (vertical * vertIn);
+                goHoriz = false;
+            }
+            if (!goVert && !goHoriz) {
+                break;
+            }
+            rf_drive.setPower(powerFactor * rfPower);
+            rb_drive.setPower(powerFactor * rbPower);
+            lf_drive.setPower(powerFactor * rbPower);
+            lb_drive.setPower(powerFactor * rfPower);
+        }*/
+//        /*
+        while (vertCond.get() || horizCond.get()) {
+            if (!vertCond.get()) {
+//                rfPower = (-horizontal * horizIn);
+//                rbPower = (horizontal * horizIn);
+                rfPower = -horizontal;
+                rbPower = horizontal;
+            }
+            if (!horizCond.get()) {
+//                rfPower = (vertical * vertIn);
+//                rbPower = (vertical * vertIn);
+                rfPower = vertical;
+                rbPower = vertical;
+            }
+            rf_drive.setPower(powerFactor * rfPower);
+            rb_drive.setPower(powerFactor * rbPower);
+            lf_drive.setPower(powerFactor * rbPower);
+            lb_drive.setPower(powerFactor * rfPower);
+//            idle();
+        }
+//        */
+        removePower();
     }
 
 
@@ -107,7 +181,7 @@ public abstract class AutoJava extends RobotBase {
         // 13.62 inches is default robot length
         double robotLength = 13.62;
         double distUnit = (robotLength) / (Math.cos(45));
-        double distIN = Math.abs((distUnit * ((degrees*1.75))) / 90);
+        double distIN = (Math.abs((distUnit * ((degrees*1.75))) / 90))*degConv;
         int motorTics;
         int pivot = (degrees >= 0) ? 1 : -1;
         rf_drive.setPower(powerFactor * (-pivot));
@@ -185,6 +259,13 @@ public abstract class AutoJava extends RobotBase {
     protected void liftBot(int level) {
         liftBot(level, 0.2975);
     }
+
+/*
+    protected void runTasksAsync(Runnable... fns) {
+        ExecutorService executor = Executors.newFixedThreadPool(fns.length);
+        List<Future<?>> futures = new ArrayList<>();
+        Arrays.stream(fns).forEach(fn -> futures.add(fn));
+    }*/
 
 
 

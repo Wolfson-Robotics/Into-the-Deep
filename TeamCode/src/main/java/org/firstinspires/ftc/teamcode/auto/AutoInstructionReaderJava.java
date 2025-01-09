@@ -9,9 +9,7 @@ import org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionReader;
 import org.firstinspires.ftc.teamcode.auto.instruct.AutoOperation;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,14 +78,28 @@ public class AutoInstructionReaderJava extends AutoJava {
                                 .collect(Collectors.toCollection(ArrayList::new));
                         moveBot(moveBotArgs.get(0), moveBotArgs.get(1), moveBotArgs.get(2), moveBotArgs.get(3));
                         break;
+                    case "moveBotOld":
+                        ArrayList<Double> moveBotOldArgs = operationArgs.stream()
+                                .map(String::valueOf)
+                                .map(Double::parseDouble)
+                                .collect(Collectors.toCollection(ArrayList::new));
+                        moveBotOld(moveBotOldArgs.get(0), moveBotOldArgs.get(1), moveBotOldArgs.get(2), moveBotOldArgs.get(3));
+                        break;
+                    case "moveBotDiag":
+                        ArrayList<Double> moveBotDiagArgs = operationArgs.stream()
+                                .map(String::valueOf)
+                                .map(Double::parseDouble)
+                                .collect(Collectors.toCollection(ArrayList::new));
+                        moveBotDiag(moveBotDiagArgs.get(0), moveBotDiagArgs.get(1), moveBotDiagArgs.get(2), moveBotDiagArgs.get(3));
+                        break;
                     case "turnBot":
                         turnBot(Double.parseDouble(operationArgs.get(0)));
                         break;
                     case "liftBot":
                         if (operationArgs.size() == 2) {
-                            liftBot(Integer.valueOf(operationArgs.get(0)), Double.parseDouble(operationArgs.get(1)));
+                            liftBot(Integer.parseInt(operationArgs.get(0)), Double.parseDouble(operationArgs.get(1)));
                         } else {
-                            liftBot(Integer.valueOf(operationArgs.get(0)));
+                            liftBot(Integer.parseInt(operationArgs.get(0)));
                         }
                         break;
 
@@ -96,7 +108,7 @@ public class AutoInstructionReaderJava extends AutoJava {
                         break;
 
                     case "setPosition":
-                        Double servoPos = Double.parseDouble(operationArgs.get(1));
+                        double servoPos = Double.parseDouble(operationArgs.get(1));
                         switch(operationArgs.get(0)) {
                             case "arm":
                                 arm.setPosition(servoPos);
@@ -108,7 +120,7 @@ public class AutoInstructionReaderJava extends AutoJava {
                         break;
 
                     case "setPower":
-                        Double powerFac = Double.parseDouble(operationArgs.get(1));
+                        double powerFac = Double.parseDouble(operationArgs.get(1));
                         switch(operationArgs.get(0)) {
                             case "rf_drive":
                                 rf_drive.setPower(powerFac);
@@ -129,8 +141,8 @@ public class AutoInstructionReaderJava extends AutoJava {
                         break;
 
                     case "moveServo":
-                        Double servoPosParam = Double.parseDouble(operationArgs.get(1));
-                        Long servoSpeed = Long.parseLong(operationArgs.get(2));
+                        double servoPosParam = Double.parseDouble(operationArgs.get(1));
+                        long servoSpeed = Long.parseLong(operationArgs.get(2));
                         switch(operationArgs.get(0)) {
                             case "arm":
                                 moveServo(arm, servoPosParam, servoSpeed);
@@ -142,8 +154,8 @@ public class AutoInstructionReaderJava extends AutoJava {
                         break;
 
                     case "moveMotor":
-                        Integer motorPos = Integer.parseInt(operationArgs.get(1));
-                        Double motorSpeed = Double.parseDouble(operationArgs.get(2));
+                        int motorPos = Integer.parseInt(operationArgs.get(1));
+                        double motorSpeed = Double.parseDouble(operationArgs.get(2));
                         switch(operationArgs.get(0)) {
                             case "rf_drive":
                                 moveMotor(rf_drive, motorPos, motorSpeed);

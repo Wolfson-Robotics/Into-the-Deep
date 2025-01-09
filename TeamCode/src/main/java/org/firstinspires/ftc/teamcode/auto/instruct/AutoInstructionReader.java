@@ -1,20 +1,22 @@
 package org.firstinspires.ftc.teamcode.auto.instruct;
 
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.*;
-
-import org.firstinspires.ftc.teamcode.auto.AutoJava;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.argJoinerRegex;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.closeParenthesisRegex;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiCommentBegin;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiCommentEnd;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.openParenthesisRegex;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.semicolonRegex;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.singleCommentMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.stopMarker;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
-import java.lang.reflect.Method;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class AutoInstructionReader {
 
@@ -70,14 +72,16 @@ public class AutoInstructionReader {
         ArrayList<String> operationArgs = new ArrayList<>();
         switch (operationName) {
 
+            case "moveBotOld":
+            case "moveBotDiag":
             case "moveBot": {
 
                 if (rawOperationArgs.size() != 4) {
-                    throw new IOException("Incorrect number of parameters at moveBot call at line " + this.getLineNumber());
+                    throw new IOException("Incorrect number of parameters at " + operationName + " call at line " + this.getLineNumber());
                 }
                 for (String parameter : rawOperationArgs) {
                     if (!isDouble(parameter)) {
-                        throw new IOException("Parameter " + parameter + " for moveBot call is an invalid double at line " + this.getLineNumber());
+                        throw new IOException("Parameter " + parameter + " for " + operationName + " call is an invalid double at line " + this.getLineNumber());
                     }
                     operationArgs.add(parameter);
                 }

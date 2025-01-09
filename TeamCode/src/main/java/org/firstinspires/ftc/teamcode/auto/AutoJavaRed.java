@@ -12,6 +12,11 @@ public class AutoJavaRed extends AutoJava {
     @Override
     public void runOpMode() {
         this.commonAutoInit();
+        moveBot(5, 1, 0, 0);
+        sleep(500);
+        moveBotDiag(20, 40, 1, 1);
+
+        /*
         moveBot(47.78125398177117,0,0,1);
         arm.setPosition(0.6400000000000001);
         moveBot(50,1, 0, 0);
@@ -36,7 +41,7 @@ public class AutoJavaRed extends AutoJava {
         moveBot(46.40625386718783,-1, 0, 0);
         sleep(500);
         moveMotor(lift, -10, 0.25, true);
-        powerFactor = 1;
+        powerFactor = 1;*/
 
 
         /*
