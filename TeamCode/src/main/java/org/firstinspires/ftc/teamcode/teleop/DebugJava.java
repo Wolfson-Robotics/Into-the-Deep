@@ -31,8 +31,6 @@ public class DebugJava extends RobotBase {
     private int minLift = -16;
     private int maxLift = -2000000;
 
-    private double maxArm = 0.21;
-    private double minArm = 0.065;
     private double manualArmSpeed = 0.01;
 
     private boolean buttonPressed = false;
@@ -46,27 +44,20 @@ public class DebugJava extends RobotBase {
         telemetry.addLine("Waiting for start");
         telemetry.update();
         double currentArmPosition = 0.65; // start position for armServo
-        double currentElbowPosition = .7;
         boolean buttonPressed = false;
         //variables for debug
         String moves = "";
         powerFactor = 0.6;
         double startposright = rf_drive.getCurrentPosition();
         double startposleft = lf_drive.getCurrentPosition();
-        double armPastPos = 0;
-        double elbowPastPos = 0;
         int numberlog = 0;
-        int clawChanged = 0;
-        int tapePlace = 0;
+        boolean clawChanged = false;
         boolean debug = false;
         boolean depadPressed = false;
         boolean turn = false;
         int allowOtherMovement = 0;
         int preLogLiftPos = 0;
         int lastLogLiftPos = 0;
-        double preLogArmPos = 0;
-        double lastLogArmPos = 0;
-        boolean loggingLift = false;
         debug = true;
         telemetry.addLine("debug on");
         telemetry.update();
@@ -85,14 +76,14 @@ public class DebugJava extends RobotBase {
         boolean minLiftAchieved = false;
         boolean maxLiftAchieved = false;
         int cachedLiftPos = 0;
-
+        String logFilePath = "";
         /*
          * Wait for the user to press start on the Driver Station
          */
         try {
             waitForStart();
             if (debug) {
-                String logFilePath = String.format("/sdcard/Logs/" + new Date().getHours() + "_" + new Date().getMinutes() + "_" + new Date().getSeconds() + ".txt", Environment.getExternalStorageDirectory().getAbsolutePath());
+                logFilePath = String.format("/sdcard/Logs/" + new Date().getHours() + "_" + new Date().getMinutes() + "_" + new Date().getSeconds() + ".txt", Environment.getExternalStorageDirectory().getAbsolutePath());
                 logger = new CustomTelemetryLogger(logFilePath);
                 textOutputLogger = new CustomTelemetryLogger(AutoInstructionConstants.autoInstructPath);
                 telemetry.addData("name of file: ", logFilePath);
@@ -110,15 +101,18 @@ public class DebugJava extends RobotBase {
                     if (gamepad1.dpad_up) {
                         startposright = rf_drive.getCurrentPosition();
                         startposleft = lf_drive.getCurrentPosition();
-                        preLogLiftPos = lift.getCurrentPosition();
-                        preLogArmPos = arm.getPosition();
                         telemetry.addLine("log start");
                         telemetry.update();
                     }
-                    if ((!gamepad1.dpad_down && !gamepad1.dpad_right && !gamepad1.dpad_left && !gamepad1.a) && depadPressed)
+                    if ((!gamepad1.dpad_down && !gamepad1.dpad_right && !gamepad1.dpad_left && !gamepad1.a && !gamepad1.b) && depadPressed)
                         depadPressed = false;
                     if (gamepad1.a && !depadPressed) {
+                        depadPressed = true;
                         moves += " arm.setPosition(" + arm.getPosition() + ");\n";
+                    }
+                    if (gamepad1.b && !depadPressed) {
+                        depadPressed = true;
+                        moves += "moveMotor(lift, " + lift.getCurrentPosition() + ", 0.5, true);\nsleep(250);\n";
                     }
                     // Dpad down starts logging the movement
                     if (gamepad1.dpad_down && !depadPressed) {
@@ -137,64 +131,46 @@ public class DebugJava extends RobotBase {
 
                                 telemetry.addData("vert", (leftDif < 0));
                                 telemetry.update();
-                                moves += "moveBot(" + ((Math.abs(leftDif)) / intCon) + "," + ((leftDif < 0) ? 1 : -1) + ", 0, 0);\nsleep(500);\n";
+                                moves += "moveBot(" + ((Math.abs(leftDif)) / intCon) + "," + ((leftDif < 0) ? -1 : 1) + ", 0, 0);\nsleep(150);\n";
                                 break;
                             case 2:
                                 telemetry.addData("horz", (rightDif > 0));
                                 telemetry.update();
-                                moves += "moveBot(" + ((Math.abs(rightDif)) / intCon) + ",0,0," + ((rightDif > 0) ? -1 : 1) + ");\nsleep(500);\n";
+                                moves += "moveBot(" + ((Math.abs(rightDif)) / intCon) + ",0,0," + ((rightDif > 0) ? -1 : 1) + ");\nsleep(150);\n";
                                 break;
                             case 3:
                                 telemetry.addLine("turn");
                                 telemetry.update();
-                                moves += ("turnBot(" + (ticsToDegrees((int) (Math.round(leftDif))) + ");\nsleep(1000);\n"));
+                                moves += ("turnBot(" + (ticsToDegrees((int) (Math.round(leftDif))) + ");\nsleep(250);\n"));
                                 break;
                         }
                         allowOtherMovement = 0;
 
-                        switch (clawChanged)
+                        if ((gamepad2.right_trigger == 0 && gamepad2.left_trigger == 0 ) && clawChanged)
+                            depadPressed = false;
+                        if(gamepad2.right_trigger != 0 && !clawChanged)
                         {
-                            case 1:
-                                moves += "claw.setPosition(" + 0.46 + ");\nsleep(500);\n";
-                                clawChanged = 0;
-                                break;
-                            case 2:
-                                moves += "claw.setPosition(" + 0.36 + ");\nsleep(500);\n";
-                                clawChanged = 0;
-                                break;
-
+                            moves += "claw.setPosition(" + 0.46 + ");\n";
+                            clawChanged = true;
+                        }
+                        if(gamepad2.left_trigger != 0 && !clawChanged)
+                        {
+                            moves += "claw.setPosition(" + 0.36 + ");\n";
+                            clawChanged = true;
                         }
 
-                        lastLogLiftPos = lift.getCurrentPosition();
-                        lastLogArmPos = arm.getPosition();
-                        if (preLogLiftPos != lastLogLiftPos) {
-                            moves += "moveMotor(lift, " + lastLogLiftPos + ", 0.25);\nsleep(500);\n";
-                        }
-                        if (preLogArmPos != lastLogArmPos) {
+
+                       /* if (preLogArmPos != lastLogArmPos) {
                             moves += "arm.setPosition(" + arm.getPosition() + ");\nsleep(500);\n";
-                        }
+                        }*/
 
                         startposright = rf_drive.getCurrentPosition();
                         startposleft = lf_drive.getCurrentPosition();
-                        preLogLiftPos = lift.getCurrentPosition();
-                        preLogArmPos = arm.getPosition();
                         turn = false;
 
                     }
 
-                    if (gamepad2.left_stick_y < 0) {
-                        currentArmPosition += this.manualArmSpeed; // increase by a small step
-//                if(currentArmPosition > 1) currentArmPosition = 1;
-//                if (currentArmPosition >= 0.4288) currentArmPosition = 0.4288;
-//                if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
-                    } else if (gamepad2.left_stick_y > 0) {
-                        currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
-//                if(currentArmPosition < -1) currentArmPosition = -1;
-                        // if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
-                    }
-                    moveServo(arm, currentArmPosition, 20);
-                    telemetry.addData("armPos:", arm.getPosition());
-                    telemetry.update();
+
                     // Dpad up actually sends the data to the FileWriter
                     if (gamepad1.dpad_right && !depadPressed) {
                         depadPressed = true;
@@ -202,6 +178,7 @@ public class DebugJava extends RobotBase {
                         textOutputLogger.logData("\n\n" + AutoInstructionCodeSerializer.serialize(moves) + "\n\n");
                         telemetry.addData("logged moves: ", moves);
                         telemetry.update();
+                        break;
 
                     }
 
@@ -209,18 +186,55 @@ public class DebugJava extends RobotBase {
                     if (gamepad2.right_stick_y != 0 || gamepad2.left_stick_y != 0)
                         buttonPressed = false;
                     }
+                if (gamepad2.left_stick_y < 0) {
+                    currentArmPosition += this.manualArmSpeed; // increase by a small step
+//                if(currentArmPosition > 1) currentArmPosition = 1;
+//                if (currentArmPosition >= 0.4288) currentArmPosition = 0.4288;
+//                if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
+                } else if (gamepad2.left_stick_y > 0) {
+                    currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
+//                if(currentArmPosition < -1) currentArmPosition = -1;
+                    // if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
+                }
+                moveServo(arm, currentArmPosition, 20);
 
                  //   if (gamepad2.left_trigger > 0) {claw.setPosition(this.closedClawPos);  clawChanged = 1;} //grab claw
                  //   if (gamepad2.right_trigger > 0) {claw.setPosition(this.openClawPos); clawChanged = 2;}//drop
 
 /* drivejava driving mechanisms here */
 
+                telemetry.addData("name of file: ", logFilePath);
+                telemetry.addData("# log:", numberlog);
+                telemetry.addLine("=== Controls ===");
 
-                // telemetry.addData("lift height:", lift.getCurrentPosition());
-                //telemetry.addData("lift power:", lift.getPower());
+// Gamepad 1 Controls
+                telemetry.addLine("Gamepad 1:");
+                telemetry.addLine("- Left Stick Y: Forward/Backward Movement");
+                telemetry.addLine("- Left Stick X: Sideways Movement");
+                telemetry.addLine("- Right Stick X: Turning");
+                telemetry.addLine("- D-Pad Up: Start Logging");
+                telemetry.addLine("- D-Pad Down: Log Movement");
+                telemetry.addLine("- D-Pad Right: Save Logged Moves");
+                telemetry.addLine("- Button A: Log Arm Position");
+                telemetry.addLine("- Button B: Log Lift Movement");
+
+// Gamepad 2 Controls
+                telemetry.addLine("Gamepad 2:");
+                telemetry.addLine("- Left Stick Y: Move Arm");
+                telemetry.addLine("- Right Stick Y: Control Lift");
+                telemetry.addLine("- Left Trigger: Close Claw");
+                telemetry.addLine("- Right Trigger: Open Claw");
+                telemetry.addLine("press y on either controller to confirm which controller it is");
+                if(gamepad1.y)
+                {
+                    telemetry.addLine("this is gamepad 1");
+                }
+                if(gamepad2.y)
+                {
+                    telemetry.addLine("this is gamepad 2");
+                }
+                telemetry.update();
                 if (gamepad2.right_stick_y != 0) {
-//                if (lift.getCurrentPosition() <= -3900) {
-//                    moveMotor(lift, -3900, 0.05);
                     if (lift.getCurrentPosition() >= this.minLift && gamepad2.right_stick_y > 0 && startedMoving) {
                         telemetry.addLine("controlling min lift");
                         alreadySwitchedMode = false;
@@ -230,7 +244,6 @@ public class DebugJava extends RobotBase {
                             minLiftAchieved = true;
                         }
                     } else if (lift.getCurrentPosition() <= this.maxLift && gamepad2.right_stick_y < 0 && startedMoving) {
-                        //telemetry.addLine("controlling max lift");
                         alreadySwitchedMode = false;
                         cachedLiftPos = this.maxLift;
                         if (!maxLiftAchieved) {
@@ -238,8 +251,6 @@ public class DebugJava extends RobotBase {
                             maxLiftAchieved = true;
                         }
                     } else {
-//                    moveMotor(lift, -1565, 0.05);
-                       // telemetry.addLine("user stick to lift");
                         startedMoving = true;
                         minLiftAchieved = false;
                         maxLiftAchieved = false;
@@ -253,21 +264,18 @@ public class DebugJava extends RobotBase {
 
                 } else {
                     if (startedMoving) {
-                      //  telemetry.addLine("Not receiving input right now maintaining lift position");
                         alreadySwitchedMode = false;
                         moveMotor(lift, cachedLiftPos, this.liftStationaryPower, true);
                     }
                 }
 
                 if (gamepad2.left_trigger > 0.1) {
-//                claw.setPosition(0.18);
                     //close
                     claw.setPosition(0.46);
                 }
                 // drop
 
                 if (gamepad2.right_trigger > 0.1) {
-//                claw.setPosition(0.06);
                     //open
                     claw.setPosition(0.36);
                 }
@@ -314,55 +322,15 @@ public class DebugJava extends RobotBase {
             }
         }
         if (debug && logger != null && textOutputLogger != null) {
+            /*
+            logger.logData(moves);
+            telemetry.addData("logged moves: ", moves);*/
             textOutputLogger.close();
             logger.close();
             telemetry.addLine("logger close");
             telemetry.update();
         }
     }
-
-
-    /*
-    public void lowerArm() {
-        armServo.setPosition(0.55);
-        elbowServo.setPosition(0.32485);
-    }
-
-    public void tapePlace() {
-        restArm();
-        sleep(1000);
-        armServo.setPosition(0.55);
-        elbowServo.setPosition(0.27);
-        sleep(1000);
-        claw1.setPosition(0.0);
-        sleep(750);
-        armServo.setPosition(0.55);
-        elbowServo.setPosition(0.3075);
-        sleep(750);
-        claw1.setPosition(0.12);
-        sleep(1000);
-        restArm();
-    }
-
-    public void restArm() {
-        armServo.setPosition(0.4927);
-        elbowServo.setPosition(0.50);
-    }
-    protected void backdropPlace() {
-        claw1.setPosition(0);
-        sleep(1000);
-        armServo.setPosition(0.4927);
-        elbowServo.setPosition(0.5483);
-    }
-    protected void backdropPlaceHigh() {
-        armServo.setPosition(0.005);
-        elbowServo.setPosition(0.0622);
-        sleep(750);
-        claw1.setPosition(0);
-        sleep(750);
-        armServo.setPosition(0.4927);
-        elbowServo.setPosition(0.5483);
-    }*/
     private void moveBot(float vertical, float pivot, float horizontal) {
         pivot *= 0.5;
         rf_drive.setPower(powerFactor * (-pivot + (vertical - horizontal)));
@@ -371,56 +339,7 @@ public class DebugJava extends RobotBase {
         lb_drive.setPower(powerFactor * (pivot + (vertical - horizontal)));
 
     }
-    void wheelTest() {
-        telemetry.addLine("testing left drive 1 forward");
-        telemetry.update();
-        lf_drive.setPower(0.25);
-        sleep(2000);
-        lf_drive.setPower(0);
-        telemetry.addLine("testing left drive 1 reverse");
-        telemetry.update();
-        lf_drive.setPower(-0.25);
-        sleep(2000);
-        lf_drive.setPower(0);
-        telemetry.addLine("testing left drive 2 forward");
-        telemetry.update();
-        lb_drive.setPower(0.25);
-        sleep(2000);
-        lb_drive.setPower(0);
-        telemetry.addLine("testing left drive 2 reverse");
-        telemetry.update();
-        lb_drive.setPower(-0.25);
-        sleep(2000);
-        lb_drive.setPower(0);
-        telemetry.addLine("testing right drive 1 forward");
-        telemetry.update();
-        rf_drive.setPower(0.25);
-        sleep(2000);
-        rf_drive.setPower(0);
-        telemetry.addLine("testing right drive 1 reverse");
-        telemetry.update();
-        rf_drive.setPower(-0.25);
-        sleep(2000);
-        rf_drive.setPower(0);
-        telemetry.addLine("testing right drive 2 forward");
-        telemetry.update();
-        rb_drive.setPower(0.25);
-        sleep(2000);
-        rb_drive.setPower(0);
-        telemetry.addLine("testing right drive 2 reverse");
-        telemetry.update();
-        rb_drive.setPower(-0.25);
-        sleep(2000);
-        rb_drive.setPower(0);
-    }
-    void clawTest() {
-        for (double i = 1; i >-1; i -= 0.01) {
-            claw.setPosition(i);
-            telemetry.addData("pos: ", i);
-            telemetry.update();
-            sleep(1500);
-        }
-    }
+
 
 }
 
