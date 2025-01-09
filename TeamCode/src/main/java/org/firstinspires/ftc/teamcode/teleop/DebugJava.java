@@ -29,7 +29,7 @@ public class DebugJava extends RobotBase {
 
     private double liftStationaryPower = 0.05;
     private int minLift = -16;
-    private int maxLift = -2000000;
+    private int maxLift = -4115;
 
     private double manualArmSpeed = 0.01;
 
@@ -131,12 +131,12 @@ public class DebugJava extends RobotBase {
 
                                 telemetry.addData("vert", (leftDif < 0));
                                 telemetry.update();
-                                moves += "moveBot(" + ((Math.abs(leftDif)) / intCon) + "," + ((leftDif < 0) ? -1 : 1) + ", 0, 0);\nsleep(150);\n";
+                                moves += "moveBot(" + ((Math.abs(leftDif)) / intCon/ticsPerInch) + "," + ((leftDif < 0) ? -1 : 1) + ", 0, 0);\nsleep(150);\n";
                                 break;
                             case 2:
                                 telemetry.addData("horz", (rightDif > 0));
                                 telemetry.update();
-                                moves += "moveBot(" + ((Math.abs(rightDif)) / intCon) + ",0,0," + ((rightDif > 0) ? -1 : 1) + ");\nsleep(150);\n";
+                                moves += "moveBot(" + ((Math.abs(rightDif)) / intCon/ticsPerInch) + ",0,0," + ((rightDif > 0) ? -1 : 1) + ");\nsleep(150);\n";
                                 break;
                             case 3:
                                 telemetry.addLine("turn");
