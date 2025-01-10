@@ -1,13 +1,6 @@
 package org.firstinspires.ftc.teamcode.auto.instruct;
 
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.argJoinerRegex;
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.closeParenthesisRegex;
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiCommentBegin;
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiCommentEnd;
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.openParenthesisRegex;
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.semicolonRegex;
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.singleCommentMarker;
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.stopMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -184,7 +177,7 @@ public class AutoInstructionReader {
             }
             case "moveMotor": {
 
-                if (rawOperationArgs.size() != 3) {
+                if (rawOperationArgs.size() != 3 && rawOperationArgs.size() != 4) {
                     throw new IOException("Incorrect number of parameters at " + operationName + " call at line " + this.getLineNumber());
                 }
                 if (!motorExists(rawOperationArgs.get(0))) {
@@ -196,9 +189,15 @@ public class AutoInstructionReader {
                 if (!isDouble(rawOperationArgs.get(2))) {
                     throw new IOException(("Motor speed " + rawOperationArgs.get(2) + " is not a valid double for " + operationName + " call at line " + this.getLineNumber()));
                 }
+                if (rawOperationArgs.size() > 3 && !isBoolean(rawOperationArgs.get(3))) {
+                    throw new IOException("Stay boolean " + rawOperationArgs.get(3) + " is not a valid boolean for " + operationName + " call at line " + this.getLineNumber());
+                }
                 operationArgs.add(rawOperationArgs.get(0));
                 operationArgs.add(rawOperationArgs.get(1));
                 operationArgs.add(rawOperationArgs.get(2));
+                if (rawOperationArgs.size() > 4) {
+                    operationArgs.add(rawOperationArgs.get(3));
+                }
                 break;
 
             }
@@ -227,6 +226,10 @@ public class AutoInstructionReader {
             case multiCommentBegin:
             case multiCommentEnd:
             case stopMarker:
+            case multiThreadingMarker:
+            case endThreadingMarker:
+            case linearRunnableMarker:
+            case endLinearRunnableMarker:
             case "placeSpecimen":
                 // basic auto methods like restArm, trussArm, and tapePlace go here with these other cases
                 break;
@@ -266,6 +269,10 @@ public class AutoInstructionReader {
         } catch (NumberFormatException ex) {
             return false;
         }
+    }
+
+    private boolean isBoolean(String booleanStr) {
+        return booleanStr.toLowerCase().equals("true") || booleanStr.toLowerCase().equals("false");
     }
 
 
