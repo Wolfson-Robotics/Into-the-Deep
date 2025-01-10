@@ -202,7 +202,7 @@ public class DebugJava extends RobotBase {
 
                     if (gamepad2.right_stick_y != 0 || gamepad2.left_stick_y != 0)
                         buttonPressed = false;
-                    }
+                }
                 if (gamepad2.left_stick_y < 0) {
                     currentArmPosition += this.manualArmSpeed; // increase by a small step
 //                if(currentArmPosition > 1) currentArmPosition = 1;
@@ -215,10 +215,10 @@ public class DebugJava extends RobotBase {
                 }
                 moveServo(arm, currentArmPosition, 20);
 
-                 //   if (gamepad2.left_trigger > 0) {claw.setPosition(this.closedClawPos);  clawChanged = 1;} //grab claw
-                 //   if (gamepad2.right_trigger > 0) {claw.setPosition(this.openClawPos); clawChanged = 2;}//drop
+                //   if (gamepad2.left_trigger > 0) {claw.setPosition(this.closedClawPos);  clawChanged = 1;} //grab claw
+                //   if (gamepad2.right_trigger > 0) {claw.setPosition(this.openClawPos); clawChanged = 2;}//drop
 
-/* drivejava driving mechanisms here */
+                /* drivejava driving mechanisms here */
 
                 telemetry.addData("name of file: ", logFilePath);
                 telemetry.addData("# log:", numberlog);
@@ -299,33 +299,33 @@ public class DebugJava extends RobotBase {
                 }
 
 
-                    switch (allowOtherMovement) {
-                        case 1:
-                            moveBot(-gamepad1.left_stick_y, 0, 0);
-                            break;
-                        case 2:
-                            moveBot(0, 0, gamepad1.left_stick_x);
-                            break;
-                        case 3:
-                            moveBot(0, (gamepad1.right_stick_x), 0);
-                            break;
-                    }
-                    if (gamepad1.left_stick_y != 0 && allowOtherMovement == 0) {
-                        allowOtherMovement = 1;
-                        telemetry.addLine("1");
-                        telemetry.update();
-                    }
-                    if (gamepad1.left_stick_x != 0 && allowOtherMovement == 0) {
-                        telemetry.addLine("2");
-                        telemetry.update();
-                        allowOtherMovement = 2;
-                    }
-                    if (gamepad1.right_stick_x != 0 && allowOtherMovement == 0) {
-                        telemetry.addLine("3");
-                        telemetry.update();
-                        allowOtherMovement = 3;
-                    }
+                switch (allowOtherMovement) {
+                    case 1:
+                        moveBot(-gamepad1.left_stick_y, 0, 0);
+                        break;
+                    case 2:
+                        moveBot(0, 0, gamepad1.left_stick_x);
+                        break;
+                    case 3:
+                        moveBot(0, (gamepad1.right_stick_x), 0);
+                        break;
                 }
+                if (gamepad1.left_stick_y != 0 && allowOtherMovement == 0) {
+                    allowOtherMovement = 1;
+                    telemetry.addLine("1");
+                    telemetry.update();
+                }
+                if (gamepad1.left_stick_x != 0 && allowOtherMovement == 0) {
+                    telemetry.addLine("2");
+                    telemetry.update();
+                    allowOtherMovement = 2;
+                }
+                if (gamepad1.right_stick_x != 0 && allowOtherMovement == 0) {
+                    telemetry.addLine("3");
+                    telemetry.update();
+                    allowOtherMovement = 3;
+                }
+            }
 
 
         }catch (IOException e) {
@@ -366,7 +366,6 @@ public class DebugJava extends RobotBase {
 
 
 }
-
 
 
 
