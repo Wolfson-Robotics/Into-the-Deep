@@ -149,6 +149,12 @@ public class AutoJavaExperimentalMovements extends AutoJava {
             }
         }
     }
+    public void miscTrial2() {
+        runTasksAsync(
+                () -> turnBot(180),
+                () -> moveMotor(lift, -3000, 1)
+        );
+    }
 
 
 
@@ -223,6 +229,9 @@ public class AutoJavaExperimentalMovements extends AutoJava {
             }
             if (gamepad1.a) {
                 trial5();
+            }
+            if (gamepad1.y) {
+                miscTrial2();
             }
 
         }

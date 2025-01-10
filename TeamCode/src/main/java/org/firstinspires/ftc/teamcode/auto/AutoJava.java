@@ -6,7 +6,13 @@ import org.firstinspires.ftc.teamcode.RobotBase;
 import org.firstinspires.ftc.teamcode.old.PixelDetection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class AutoJava extends RobotBase {
 
@@ -260,12 +266,19 @@ public abstract class AutoJava extends RobotBase {
         liftBot(level, 0.2975);
     }
 
-/*
+
+    protected void runTasksAsync(List<Runnable> fns) {
+        ExecutorService executorService = Executors.newFixedThreadPool(fns.size()); // Thread pool
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        fns.forEach(fn -> futures.add(CompletableFuture.runAsync(fn, executorService)));
+
+        CompletableFuture<Void> allThreads = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        allThreads.join();
+        executorService.shutdown();
+    }
     protected void runTasksAsync(Runnable... fns) {
-        ExecutorService executor = Executors.newFixedThreadPool(fns.length);
-        List<Future<?>> futures = new ArrayList<>();
-        Arrays.stream(fns).forEach(fn -> futures.add(fn));
-    }*/
+        runTasksAsync(Arrays.stream(fns).collect(Collectors.toList()));
+    }
 
 
 
