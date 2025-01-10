@@ -1,19 +1,20 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import android.os.Environment;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.CustomTelemetryLogger;
 import org.firstinspires.ftc.teamcode.RobotBase;
-import org.firstinspires.ftc.teamcode.old.ServoSettings;
 import org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionCodeSerializer;
 import org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants;
+import org.firstinspires.ftc.teamcode.old.ServoSettings;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import android.os.Environment;
 
 /**
  * Gamepad 1 drive trains
@@ -26,6 +27,7 @@ public class DebugJava extends RobotBase {
     private Map<String, ServoSettings> servoPositions = new HashMap<>();
     private CustomTelemetryLogger logger;
     private CustomTelemetryLogger textOutputLogger;
+    private CustomTelemetryLogger logger2;
 
     private double liftStationaryPower = 0.05;
     private int minLift = -16;
@@ -76,7 +78,6 @@ public class DebugJava extends RobotBase {
         boolean minLiftAchieved = false;
         boolean maxLiftAchieved = false;
         int cachedLiftPos = 0;
-        String lastlogged = "";
         String logFilePath = "";
         /*
          * Wait for the user to press start on the Driver Station
@@ -85,8 +86,10 @@ public class DebugJava extends RobotBase {
             waitForStart();
             if (debug) {
                 logFilePath = String.format("/sdcard/Logs/" + new Date().getHours() + "_" + new Date().getMinutes() + "_" + new Date().getSeconds() + ".txt", Environment.getExternalStorageDirectory().getAbsolutePath());
+                String latestLogFilePath = "/sdcard/Logs/latest.txt";
                 logger = new CustomTelemetryLogger(logFilePath);
                 textOutputLogger = new CustomTelemetryLogger(AutoInstructionConstants.autoInstructPath);
+                logger2 = new CustomTelemetryLogger(latestLogFilePath, false);
                 telemetry.addData("name of file: ", logFilePath);
                 telemetry.addData("name of auto instruct file: ", AutoInstructionConstants.autoInstructPath);
                 telemetry.update();
@@ -109,12 +112,10 @@ public class DebugJava extends RobotBase {
                         depadPressed = false;
                     if (gamepad1.a && !depadPressed) {
                         depadPressed = true;
-                        lastlogged = "arm";
                         moves += " arm.setPosition(" + arm.getPosition() + ");\n";
                     }
                     if (gamepad1.b && !depadPressed) {
                         depadPressed = true;
-                        lastlogged = "lift";
                         moves += "moveMotor(lift, " + lift.getCurrentPosition() + ", 0.5, true);\nsleep(250);\n";
                     }
                     // Dpad down starts logging the movement
@@ -126,6 +127,10 @@ public class DebugJava extends RobotBase {
                         logger.logData("log num: " + numberlog + "\n");
                         logger.logData("right movement:" + rightDif + "\n");
                         logger.logData("left movement:" + leftDif + "\n");
+
+                        logger2.logData("log num: " + numberlog + "\n");
+                        logger2.logData("right movement:" + rightDif + "\n");
+                        logger2.logData("left movement:" + leftDif + "\n");
                         telemetry.addData("log end", numberlog);
                         telemetry.update();
                         boolean vertical = ((rightDif >= 0));
@@ -134,36 +139,31 @@ public class DebugJava extends RobotBase {
 
                                 telemetry.addData("vert", (leftDif < 0));
                                 telemetry.update();
-                                lastlogged = "vertical";
-                                moves += "moveBot(" + ((Math.abs(leftDif)) / intCon/ticsPerInch) + "," + ((leftDif < 0) ? -1 : 1) + ", 0, 0);\nsleep(150);\n";
+                                moves += "moveBot(" + (((Math.abs(leftDif)) / intCon)/ticsPerInch) + "," + ((leftDif < 0) ? 1 : -1) + ", 0, 0);\nsleep(150);\n";
                                 break;
                             case 2:
                                 telemetry.addData("horz", (rightDif > 0));
                                 telemetry.update();
-                                lastlogged = "horizontal";
-                                moves += "moveBot(" + ((Math.abs(rightDif)) / intCon/ticsPerInch) + ",0,0," + ((rightDif > 0) ? -1 : 1) + ");\nsleep(150);\n";
+                                moves += "moveBot(" + (((Math.abs(rightDif)) / intCon)/ticsPerInch) + ",0,0," + ((rightDif > 0) ? -1 : 1) + ");\nsleep(150);\n";
                                 break;
                             case 3:
                                 telemetry.addLine("turn");
                                 telemetry.update();
-                                lastlogged = "turn";
-                                moves += ("turnBot(" + (ticsToDegrees((int) (Math.round(leftDif))) + ");\nsleep(250);\n"));
+                                moves += ("turnBot(" + ((((double) ticsToDegrees((int) (Math.round(leftDif))))/degConv)) + ");\nsleep(250);\n");
                                 break;
                         }
                         allowOtherMovement = 0;
 
                         if ((gamepad2.right_trigger == 0 && gamepad2.left_trigger == 0 ) && clawChanged)
-                            clawChanged = false;
+                            depadPressed = false;
                         if(gamepad2.right_trigger != 0 && !clawChanged)
                         {
-                            lastlogged = "claw open";
-                            moves += "claw.setPosition(" + 0.46 + ");\n";
+                            moves += "claw.setPosition(" + this.closedClaw + ");\n";
                             clawChanged = true;
                         }
                         if(gamepad2.left_trigger != 0 && !clawChanged)
                         {
-                            lastlogged = "claw closed";
-                            moves += "claw.setPosition(" + 0.36 + ");\n";
+                            moves += "claw.setPosition(" + this.openClaw + ");\n";
                             clawChanged = true;
                         }
 
@@ -183,6 +183,7 @@ public class DebugJava extends RobotBase {
                     if (gamepad1.dpad_right && !depadPressed) {
                         depadPressed = true;
                         logger.logData(moves);
+                        logger2.logData(moves);
                         textOutputLogger.logData("\n\n" + AutoInstructionCodeSerializer.serialize(moves) + "\n\n");
                         telemetry.addData("logged moves: ", moves);
                         telemetry.update();
@@ -193,7 +194,7 @@ public class DebugJava extends RobotBase {
 
                     if (gamepad2.right_stick_y != 0 || gamepad2.left_stick_y != 0)
                         buttonPressed = false;
-                    }
+                }
                 if (gamepad2.left_stick_y < 0) {
                     currentArmPosition += this.manualArmSpeed; // increase by a small step
 //                if(currentArmPosition > 1) currentArmPosition = 1;
@@ -206,14 +207,13 @@ public class DebugJava extends RobotBase {
                 }
                 moveServo(arm, currentArmPosition, 20);
 
-                 //   if (gamepad2.left_trigger > 0) {claw.setPosition(this.closedClawPos);  clawChanged = 1;} //grab claw
-                 //   if (gamepad2.right_trigger > 0) {claw.setPosition(this.openClawPos); clawChanged = 2;}//drop
+                //   if (gamepad2.left_trigger > 0) {claw.setPosition(this.closedClawPos);  clawChanged = 1;} //grab claw
+                //   if (gamepad2.right_trigger > 0) {claw.setPosition(this.openClawPos); clawChanged = 2;}//drop
 
-/* drivejava driving mechanisms here */
+                /* drivejava driving mechanisms here */
 
                 telemetry.addData("name of file: ", logFilePath);
                 telemetry.addData("# log:", numberlog);
-                telemetry.addData("latest update: ", lastlogged);
                 telemetry.addLine("=== Controls ===");
 
 // Gamepad 1 Controls
@@ -280,43 +280,43 @@ public class DebugJava extends RobotBase {
 
                 if (gamepad2.left_trigger > 0.1) {
                     //close
-                    claw.setPosition(0.46);
+                    claw.setPosition(this.closedClaw);
                 }
                 // drop
 
                 if (gamepad2.right_trigger > 0.1) {
                     //open
-                    claw.setPosition(0.36);
+                    claw.setPosition(this.openClaw);
                 }
 
 
-                    switch (allowOtherMovement) {
-                        case 1:
-                            moveBot(-gamepad1.left_stick_y, 0, 0);
-                            break;
-                        case 2:
-                            moveBot(0, 0, gamepad1.left_stick_x);
-                            break;
-                        case 3:
-                            moveBot(0, (gamepad1.right_stick_x), 0);
-                            break;
-                    }
-                    if (gamepad1.left_stick_y != 0 && allowOtherMovement == 0) {
-                        allowOtherMovement = 1;
-                        telemetry.addLine("1");
-                        telemetry.update();
-                    }
-                    if (gamepad1.left_stick_x != 0 && allowOtherMovement == 0) {
-                        telemetry.addLine("2");
-                        telemetry.update();
-                        allowOtherMovement = 2;
-                    }
-                    if (gamepad1.right_stick_x != 0 && allowOtherMovement == 0) {
-                        telemetry.addLine("3");
-                        telemetry.update();
-                        allowOtherMovement = 3;
-                    }
+                switch (allowOtherMovement) {
+                    case 1:
+                        moveBot(-gamepad1.left_stick_y, 0, 0);
+                        break;
+                    case 2:
+                        moveBot(0, 0, gamepad1.left_stick_x);
+                        break;
+                    case 3:
+                        moveBot(0, (gamepad1.right_stick_x), 0);
+                        break;
                 }
+                if (gamepad1.left_stick_y != 0 && allowOtherMovement == 0) {
+                    allowOtherMovement = 1;
+                    telemetry.addLine("1");
+                    telemetry.update();
+                }
+                if (gamepad1.left_stick_x != 0 && allowOtherMovement == 0) {
+                    telemetry.addLine("2");
+                    telemetry.update();
+                    allowOtherMovement = 2;
+                }
+                if (gamepad1.right_stick_x != 0 && allowOtherMovement == 0) {
+                    telemetry.addLine("3");
+                    telemetry.update();
+                    allowOtherMovement = 3;
+                }
+            }
 
 
         }catch (IOException e) {
@@ -329,6 +329,9 @@ public class DebugJava extends RobotBase {
             if (textOutputLogger != null) {
                 textOutputLogger.close();
             }
+            if (logger2 != null) {
+                logger2.close();
+            }
         }
         if (debug && logger != null && textOutputLogger != null) {
             /*
@@ -336,9 +339,12 @@ public class DebugJava extends RobotBase {
             telemetry.addData("logged moves: ", moves);*/
             textOutputLogger.close();
             logger.close();
-            telemetry.addLine("logger close");
-            telemetry.update();
         }
+        if (debug && logger2 != null) {
+            logger2.close();
+        }
+        telemetry.addLine("logger close");
+        telemetry.update();
     }
     private void moveBot(float vertical, float pivot, float horizontal) {
         pivot *= 0.5;
@@ -351,9 +357,3 @@ public class DebugJava extends RobotBase {
 
 
 }
-
-
-
-
-
-

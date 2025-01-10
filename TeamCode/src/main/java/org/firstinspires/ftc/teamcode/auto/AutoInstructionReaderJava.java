@@ -1,6 +1,13 @@
 package org.firstinspires.ftc.teamcode.auto;
 
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.*;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.endLinearRunnableMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.endThreadingMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.linearRunnableMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiCommentBegin;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiCommentEnd;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiThreadingMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.singleCommentMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.stopMarker;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
@@ -8,8 +15,9 @@ import org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants;
 import org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionReader;
 import org.firstinspires.ftc.teamcode.auto.instruct.AutoOperation;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,7 +45,8 @@ public class AutoInstructionReaderJava extends AutoJava {
             AutoInstructionReader reader = new AutoInstructionReader(AutoInstructionConstants.autoInstructPath);
 
             AutoOperation autoOperation;
-            boolean skipOperations = false;
+            boolean skipOperations = false, storeAsync = false, creatingLinearRunnable = false;
+            List<Runnable> fns = new ArrayList<>(), fnsInFn = new ArrayList<>();
             while ((autoOperation = reader.readLine()) != null) {
 
 
@@ -61,6 +70,18 @@ public class AutoInstructionReaderJava extends AutoJava {
                             break;
                         }
                         return;
+                    case multiThreadingMarker:
+                        storeAsync = true;
+                        break;
+                    case endThreadingMarker:
+                        storeAsync = false;
+                        break;
+                    case linearRunnableMarker:
+                        creatingLinearRunnable = true;
+                        break;
+                    case endLinearRunnableMarker:
+                        creatingLinearRunnable = false;
+                        break;
                 }
                 if (skipCurrOperation || skipOperations) {
                     continue;
@@ -68,7 +89,7 @@ public class AutoInstructionReaderJava extends AutoJava {
 
 
 
-                ArrayList<?> finalOperationArgs = new ArrayList<>();
+                Runnable fn = null;
                 switch (operationName) {
 
                     case "moveBot":
@@ -76,45 +97,45 @@ public class AutoInstructionReaderJava extends AutoJava {
                                 .map(String::valueOf)
                                 .map(Double::parseDouble)
                                 .collect(Collectors.toCollection(ArrayList::new));
-                        moveBot(moveBotArgs.get(0), moveBotArgs.get(1), moveBotArgs.get(2), moveBotArgs.get(3));
+                        fn = () -> moveBot(moveBotArgs.get(0), moveBotArgs.get(1), moveBotArgs.get(2), moveBotArgs.get(3));
                         break;
                     case "moveBotOld":
                         ArrayList<Double> moveBotOldArgs = operationArgs.stream()
                                 .map(String::valueOf)
                                 .map(Double::parseDouble)
                                 .collect(Collectors.toCollection(ArrayList::new));
-                        moveBotOld(moveBotOldArgs.get(0), moveBotOldArgs.get(1), moveBotOldArgs.get(2), moveBotOldArgs.get(3));
+                        fn = () -> moveBotOld(moveBotOldArgs.get(0), moveBotOldArgs.get(1), moveBotOldArgs.get(2), moveBotOldArgs.get(3));
                         break;
                     case "moveBotDiag":
                         ArrayList<Double> moveBotDiagArgs = operationArgs.stream()
                                 .map(String::valueOf)
                                 .map(Double::parseDouble)
                                 .collect(Collectors.toCollection(ArrayList::new));
-                        moveBotDiag(moveBotDiagArgs.get(0), moveBotDiagArgs.get(1), moveBotDiagArgs.get(2), moveBotDiagArgs.get(3));
+                        fn = () -> moveBotDiag(moveBotDiagArgs.get(0), moveBotDiagArgs.get(1), moveBotDiagArgs.get(2), moveBotDiagArgs.get(3));
                         break;
                     case "turnBot":
-                        turnBot(Double.parseDouble(operationArgs.get(0)));
+                        fn = () -> turnBot(Double.parseDouble(operationArgs.get(0)));
                         break;
                     case "liftBot":
                         if (operationArgs.size() == 2) {
-                            liftBot(Integer.parseInt(operationArgs.get(0)), Double.parseDouble(operationArgs.get(1)));
+                            fn = () -> liftBot(Integer.parseInt(operationArgs.get(0)), Double.parseDouble(operationArgs.get(1)));
                         } else {
-                            liftBot(Integer.parseInt(operationArgs.get(0)));
+                            fn = () -> liftBot(Integer.parseInt(operationArgs.get(0)));
                         }
                         break;
 
                     case "sleep":
-                        sleep(Long.parseLong(operationArgs.get(0)));
+                        fn = () -> sleep(Long.parseLong(operationArgs.get(0)));
                         break;
 
                     case "setPosition":
                         double servoPos = Double.parseDouble(operationArgs.get(1));
                         switch(operationArgs.get(0)) {
                             case "arm":
-                                arm.setPosition(servoPos);
+                                fn = () -> arm.setPosition(servoPos);
                                 break;
                             case "claw":
-                                claw.setPosition(servoPos);
+                                fn = () -> claw.setPosition(servoPos);
                                 break;
                         }
                         break;
@@ -123,19 +144,19 @@ public class AutoInstructionReaderJava extends AutoJava {
                         double powerFac = Double.parseDouble(operationArgs.get(1));
                         switch(operationArgs.get(0)) {
                             case "rf_drive":
-                                rf_drive.setPower(powerFac);
+                                fn = () -> rf_drive.setPower(powerFac);
                                 break;
                             case "rb_drive":
-                                rb_drive.setPower(powerFac);
+                                fn = () -> rb_drive.setPower(powerFac);
                                 break;
                             case "lf_drive":
-                                lf_drive.setPower(powerFac);
+                                fn = () -> lf_drive.setPower(powerFac);
                                 break;
                             case "lb_drive":
-                                lb_drive.setPower(powerFac);
+                                fn = () -> lb_drive.setPower(powerFac);
                                 break;
                             case "lift":
-                                lift.setPower(powerFac);
+                                fn = () -> lift.setPower(powerFac);
                                 break;
                         }
                         break;
@@ -145,10 +166,10 @@ public class AutoInstructionReaderJava extends AutoJava {
                         long servoSpeed = Long.parseLong(operationArgs.get(2));
                         switch(operationArgs.get(0)) {
                             case "arm":
-                                moveServo(arm, servoPosParam, servoSpeed);
+                                fn = () -> moveServo(arm, servoPosParam, servoSpeed);
                                 break;
                             case "claw":
-                                moveServo(claw, servoPosParam, servoSpeed);
+                                fn = () -> moveServo(claw, servoPosParam, servoSpeed);
                                 break;
                         }
                         break;
@@ -156,21 +177,22 @@ public class AutoInstructionReaderJava extends AutoJava {
                     case "moveMotor":
                         int motorPos = Integer.parseInt(operationArgs.get(1));
                         double motorSpeed = Double.parseDouble(operationArgs.get(2));
+                        boolean stay = operationArgs.size() > 3 && Boolean.parseBoolean(operationArgs.get(3));
                         switch(operationArgs.get(0)) {
                             case "rf_drive":
-                                moveMotor(rf_drive, motorPos, motorSpeed);
+                                fn = () -> moveMotor(rf_drive, motorPos, motorSpeed, stay);
                                 break;
                             case "rb_drive":
-                                moveMotor(rb_drive, motorPos, motorSpeed);
+                                fn = () -> moveMotor(rb_drive, motorPos, motorSpeed, stay);
                                 break;
                             case "lf_drive":
-                                moveMotor(lf_drive, motorPos, motorSpeed);
+                                fn = () -> moveMotor(lf_drive, motorPos, motorSpeed, stay);
                                 break;
                             case "lb_drive":
-                                moveMotor(lb_drive, motorPos, motorSpeed);
+                                fn = () -> moveMotor(lb_drive, motorPos, motorSpeed, stay);
                                 break;
                             case "lift":
-                                moveMotor(lift, motorPos, motorSpeed);
+                                fn = () -> moveMotor(lift, motorPos, motorSpeed, stay);
                                 break;
                         }
                         break;
@@ -189,9 +211,33 @@ public class AutoInstructionReaderJava extends AutoJava {
                         break;
 
                     default:
-                        finalOperationArgs = operationArgs;
+//                        finalOperationArgs = operationArgs;
                         break;
 
+                }
+                if (fn != null) {
+                    if (creatingLinearRunnable) {
+                        fnsInFn.add(fn);
+                    } else {
+                        if (!fnsInFn.isEmpty()) {
+                            fn = () -> {
+                                List<Runnable> fnsInFn2 = new ArrayList<>(fnsInFn);
+                                fnsInFn2.forEach(fnInFn -> CompletableFuture.runAsync(fnInFn).join());
+                            };
+                            fnsInFn.clear();
+                        }
+                        if (storeAsync) {
+                            fns.add(fn);
+                        } else {
+                            if (!fns.isEmpty()) {
+                                fns.add(fn);
+                                runTasksAsync(fns);
+                            } else {
+                                CompletableFuture.runAsync(fn).join();
+                            }
+                            fns.clear();
+                        }
+                    }
                 }
 
 
@@ -200,7 +246,7 @@ public class AutoInstructionReaderJava extends AutoJava {
             reader.close();
 
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             telemetry.addLine("An error occurred:");
             telemetry.addLine(e.getMessage());
             telemetry.addLine(Stream.of(e.getStackTrace())
