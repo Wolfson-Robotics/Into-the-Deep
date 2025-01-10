@@ -76,6 +76,7 @@ public class DebugJava extends RobotBase {
         boolean minLiftAchieved = false;
         boolean maxLiftAchieved = false;
         int cachedLiftPos = 0;
+        String lastlogged = "";
         String logFilePath = "";
         /*
          * Wait for the user to press start on the Driver Station
@@ -108,10 +109,12 @@ public class DebugJava extends RobotBase {
                         depadPressed = false;
                     if (gamepad1.a && !depadPressed) {
                         depadPressed = true;
+                        lastlogged = "arm";
                         moves += " arm.setPosition(" + arm.getPosition() + ");\n";
                     }
                     if (gamepad1.b && !depadPressed) {
                         depadPressed = true;
+                        lastlogged = "lift";
                         moves += "moveMotor(lift, " + lift.getCurrentPosition() + ", 0.5, true);\nsleep(250);\n";
                     }
                     // Dpad down starts logging the movement
@@ -131,30 +134,35 @@ public class DebugJava extends RobotBase {
 
                                 telemetry.addData("vert", (leftDif < 0));
                                 telemetry.update();
+                                lastlogged = "vertical";
                                 moves += "moveBot(" + ((Math.abs(leftDif)) / intCon/ticsPerInch) + "," + ((leftDif < 0) ? -1 : 1) + ", 0, 0);\nsleep(150);\n";
                                 break;
                             case 2:
                                 telemetry.addData("horz", (rightDif > 0));
                                 telemetry.update();
+                                lastlogged = "horizontal";
                                 moves += "moveBot(" + ((Math.abs(rightDif)) / intCon/ticsPerInch) + ",0,0," + ((rightDif > 0) ? -1 : 1) + ");\nsleep(150);\n";
                                 break;
                             case 3:
                                 telemetry.addLine("turn");
                                 telemetry.update();
+                                lastlogged = "turn";
                                 moves += ("turnBot(" + (ticsToDegrees((int) (Math.round(leftDif))) + ");\nsleep(250);\n"));
                                 break;
                         }
                         allowOtherMovement = 0;
 
                         if ((gamepad2.right_trigger == 0 && gamepad2.left_trigger == 0 ) && clawChanged)
-                            depadPressed = false;
+                            clawChanged = false;
                         if(gamepad2.right_trigger != 0 && !clawChanged)
                         {
+                            lastlogged = "claw open";
                             moves += "claw.setPosition(" + 0.46 + ");\n";
                             clawChanged = true;
                         }
                         if(gamepad2.left_trigger != 0 && !clawChanged)
                         {
+                            lastlogged = "claw closed";
                             moves += "claw.setPosition(" + 0.36 + ");\n";
                             clawChanged = true;
                         }
@@ -205,6 +213,7 @@ public class DebugJava extends RobotBase {
 
                 telemetry.addData("name of file: ", logFilePath);
                 telemetry.addData("# log:", numberlog);
+                telemetry.addData("latest update: ", lastlogged);
                 telemetry.addLine("=== Controls ===");
 
 // Gamepad 1 Controls
