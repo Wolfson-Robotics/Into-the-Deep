@@ -65,6 +65,26 @@ public class AutoJavaExperimentalMovements extends AutoJava {
         endTrial();
     }
 
+
+    public void trial6() {
+        beginTrial();
+        print("trial 6");
+        moveBotOld(15, 1, 0, 1);
+        endTrial();
+    }
+    public void trial7() {
+        beginTrial();
+        print("trial 7");
+        moveBotOld(15, 0, 1, 0);
+        endTrial();
+    }
+    public void trial8() {
+        beginTrial();
+        print("trial 8");
+        moveBotOld(15, 1, 1, 1);
+        endTrial();
+    }
+
     // lf experiment
     public void turnTrial1() {
         beginTrial();
@@ -227,12 +247,25 @@ public class AutoJavaExperimentalMovements extends AutoJava {
             if (gamepad1.dpad_left) {
                 trial4();
             }
-            if (gamepad1.a) {
+            if (gamepad1.y) {
                 trial5();
             }
+            if (gamepad1.b) {
+                trial6();
+            }
+            if (gamepad1.a) {
+                trial7();
+            }
+            if (gamepad1.x) {
+                trial8();
+            }
+            /*
+            if (gamepad1.a) {
+                trial5();
+            }*//*
             if (gamepad1.y) {
                 miscTrial2();
-            }
+            }*/
 
         }
     }

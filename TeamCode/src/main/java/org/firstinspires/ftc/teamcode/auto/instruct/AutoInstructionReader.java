@@ -41,7 +41,7 @@ public class AutoInstructionReader {
 
 
         String actualData = rawLine
-                .replaceAll("\\r|\\n", "")
+                .replaceAll("\\r|\\n|\\t", "")
                 .replaceAll((openParenthesisRegex + "|" + closeParenthesisRegex + "|" + semicolonRegex), " ")
                 .trim();
         ArrayList<String> rawOperationArgs = new ArrayList<>(Arrays.asList(actualData.split(argJoinerRegex)));
@@ -56,10 +56,9 @@ public class AutoInstructionReader {
         rawOperationArgs.remove(0);
 
 
-        rawOperationArgs = new ArrayList<>(rawOperationArgs.stream()
-                .map(arg -> arg.trim())
-                .filter(arg -> arg.length() > 0)
-                .collect(Collectors.toCollection(ArrayList::new)));
+        rawOperationArgs = rawOperationArgs.stream()
+                .map(String::trim)
+                .filter(arg -> !arg.isEmpty()).collect(Collectors.toCollection(ArrayList::new));
 
 
         ArrayList<String> operationArgs = new ArrayList<>();
@@ -231,6 +230,11 @@ public class AutoInstructionReader {
             case linearRunnableMarker:
             case endLinearRunnableMarker:
             case "placeSpecimen":
+            case "grabSample":
+            case "sampleInBasket":
+            case "restLift":
+            case "topBasketLift":
+            case "restArm":
                 // basic auto methods like restArm, trussArm, and tapePlace go here with these other cases
                 break;
             default:

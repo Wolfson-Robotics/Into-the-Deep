@@ -1,8 +1,8 @@
-package org.firstinspires.ftc.teamcode.auto;
+package org.firstinspires.ftc.teamcode.auto.oldautos;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import org.firstinspires.ftc.teamcode.auto.AutoJava;
 
-@Autonomous(name = "AutoJavaRed", group = "Auto")
+//@Autonomous(name = "AutoJavaRed", group = "Auto")
 public class AutoJavaRed extends AutoJava {
 
     public AutoJavaRed() {

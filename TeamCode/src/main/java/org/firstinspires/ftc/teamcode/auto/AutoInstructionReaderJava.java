@@ -207,7 +207,22 @@ public class AutoInstructionReaderJava extends AutoJava {
 
 
                     case "placeSpecimen":
-                        placeSpecimen();
+                        fn = () -> placeSpecimen();
+                        break;
+                    case "grabSample":
+                        fn = () -> grabSample();
+                        break;
+                    case "sampleInBasket":
+                        fn = () -> sampleInBasket();
+                        break;
+                    case "restLift":
+                        fn = () -> restLift();
+                        break;
+                    case "topBasketLift":
+                        fn = () -> topBasketLift();
+                        break;
+                    case "restArm":
+                        fn = () -> restArm();
                         break;
 
                     default:
@@ -220,10 +235,9 @@ public class AutoInstructionReaderJava extends AutoJava {
                         fnsInFn.add(fn);
                     } else {
                         if (!fnsInFn.isEmpty()) {
-                            fn = () -> {
-                                List<Runnable> fnsInFn2 = new ArrayList<>(fnsInFn);
-                                fnsInFn2.forEach(fnInFn -> CompletableFuture.runAsync(fnInFn).join());
-                            };
+                            // preserve fnsinfn for the runnable
+                            List<Runnable> fnsInFn2 = new ArrayList<>(fnsInFn);
+                            fn = () -> fnsInFn2.forEach(fnInFn -> CompletableFuture.runAsync(fnInFn).join());
                             fnsInFn.clear();
                         }
                         if (storeAsync) {

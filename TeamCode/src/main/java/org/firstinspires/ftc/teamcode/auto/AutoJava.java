@@ -1,10 +1,11 @@
 package org.firstinspires.ftc.teamcode.auto;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.RobotBase;
 import org.firstinspires.ftc.teamcode.old.PixelDetection;
-import com.qualcomm.robotcore.hardware.DcMotor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,15 +33,12 @@ public abstract class AutoJava extends RobotBase {
         super.initMotors();
         this.setBrakeMotors();
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        powerFactor = 0.6;
+//        powerFactor = 0.6;
+        powerFactor = 0.725;
         arm.setPosition(0.6);
-        claw.setPosition(0.46);
+        claw.setPosition(this.closedClaw);
     }
 
-
-//    protected void moveAndTurnBot(double distINAbs, ) {
-//
-//    }
 
     // pos vertical is forward, neg vertical is negative
     // pos pivot is clockwise, neg pivot is counterclockwise
@@ -298,6 +296,28 @@ public abstract class AutoJava extends RobotBase {
 //        camera.closeCameraDevice();
     }
 
+
+    protected void grabSample() {
+        arm.setPosition(0.9300000000000002);
+        sleep(300);
+        claw.setPosition(0.46);
+    }
+    protected void sampleInBasket() {
+        arm.setPosition(0.76);
+        sleep(150);
+        claw.setPosition(0.3);
+        sleep(150);
+        arm.setPosition(0.609);
+    }
+    protected void restLift() {
+        moveMotor(lift, 0, 1.5);
+    }
+    protected void topBasketLift() {
+        moveMotor(lift, -4220, 1.5);
+    }
+    protected void restArm() {
+        arm.setPosition(0.6094444444444445);
+    }
     // stub methods for later
     protected void placeSpecimen() {
 
