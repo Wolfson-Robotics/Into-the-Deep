@@ -155,7 +155,7 @@ public class AutoInstructionReader {
 
             }
             case "moveServo": {
-
+/*
                 if (rawOperationArgs.size() != 3) {
                     throw new IOException("Incorrect number of parameters at " + operationName + " call at line " + this.getLineNumber());
                 }
@@ -170,7 +170,18 @@ public class AutoInstructionReader {
                 }
                 operationArgs.add(rawOperationArgs.get(0));
                 operationArgs.add(rawOperationArgs.get(1));
-                operationArgs.add(rawOperationArgs.get(2));
+                operationArgs.add(rawOperationArgs.get(2));*/
+                if (rawOperationArgs.size() != 2) {
+                    throw new IOException("Incorrect number of parameters at " + operationName + " call at line " + this.getLineNumber());
+                }
+                if (!servoExists(rawOperationArgs.get(0))) {
+                    throw new IOException("Servo " + rawOperationArgs.get(0) + " for " + operationName + " call does not exist at line " + this.getLineNumber());
+                }
+                if (!isDouble(rawOperationArgs.get(1))) {
+                    throw new IOException("Servo pos " + rawOperationArgs.get(1) + " is not a valid double for " + operationName + " call at line " + this.getLineNumber());
+                }
+                operationArgs.add(rawOperationArgs.get(0));
+                operationArgs.add(rawOperationArgs.get(1));
                 break;
 
             }

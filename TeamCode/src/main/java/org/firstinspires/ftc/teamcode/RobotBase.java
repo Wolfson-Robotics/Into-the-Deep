@@ -137,6 +137,21 @@ public abstract class RobotBase extends LinearOpMode {
         }
 
     }
+    protected void moveServo(Servo servo, double targetPosition) {
+        /*
+        while (Math.abs(servo.getPosition() - targetPosition) > 0.01) {
+            if (servo.getPosition() < targetPosition) {
+                servo.setPosition(targetPosition);
+            } else {
+                servo.setPosition(targetPosition);
+            }
+            sleep(50);
+        }*/
+        servo.setPosition(targetPosition);
+        while (Math.abs(servo.getPosition() - targetPosition) > 0.0001) {
+            idle();
+        }
+    }
 
     protected void moveMotor(DcMotor motor, int targetPosition, double speed, boolean stay) {
         int oldTargetPosition = targetPosition;
@@ -155,6 +170,16 @@ public abstract class RobotBase extends LinearOpMode {
         }
     }
 
+    protected void driveMotor(DcMotor motor, int targetPosition, double speed) {
+        int oldTargetPosition = targetPosition;
+        motor.setTargetPosition(targetPosition);
+        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motor.setPower(speed);
+        targetPosition = oldTargetPosition + targetPosition;
+        if (targetPosition < 0) {
+            targetPosition *= -1;
+        }
+    }
     protected void moveMotor(DcMotor motor, int targetPosition, double speed) {
         moveMotor(motor, targetPosition, speed, false);
     }
