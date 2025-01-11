@@ -162,6 +162,7 @@ public class AutoInstructionReaderJava extends AutoJava {
                         break;
 
                     case "moveServo":
+                        /*
                         double servoPosParam = Double.parseDouble(operationArgs.get(1));
                         long servoSpeed = Long.parseLong(operationArgs.get(2));
                         switch(operationArgs.get(0)) {
@@ -170,6 +171,15 @@ public class AutoInstructionReaderJava extends AutoJava {
                                 break;
                             case "claw":
                                 fn = () -> moveServo(claw, servoPosParam, servoSpeed);
+                                break;
+                        }*/
+                        double servoPosParam = Double.parseDouble(operationArgs.get(1));
+                        switch(operationArgs.get(0)) {
+                            case "arm":
+                                fn = () -> moveServo(arm, servoPosParam);
+                                break;
+                            case "claw":
+                                fn = () -> moveServo(claw, servoPosParam);
                                 break;
                         }
                         break;

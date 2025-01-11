@@ -298,16 +298,24 @@ public abstract class AutoJava extends RobotBase {
 
 
     protected void grabSample() {
+        /*
         arm.setPosition(0.9300000000000002);
         sleep(300);
-        claw.setPosition(0.46);
+        claw.setPosition(0.46);*/
+        moveServo(arm, 0.91);
+        sleep(250);
+        moveServo(claw, 0.46);
+        sleep(150);
     }
     protected void sampleInBasket() {
-        arm.setPosition(0.76);
+//        arm.setPosition(0.76);
+        moveServo(arm, 0.76);
         sleep(150);
-        claw.setPosition(0.3);
+//        claw.setPosition(0.3);
+        moveServo(claw, 0.3);
         sleep(150);
-        arm.setPosition(0.609);
+//        arm.setPosition(0.609);
+         moveServo(arm, 0.609);
     }
     protected void restLift() {
         moveMotor(lift, 0, 1.5);
@@ -316,7 +324,8 @@ public abstract class AutoJava extends RobotBase {
         moveMotor(lift, -4220, 1.5);
     }
     protected void restArm() {
-        arm.setPosition(0.6094444444444445);
+//        arm.setPosition(0.6094444444444445);
+        moveServo(arm, 0.6094444444444445);
     }
     // stub methods for later
     protected void placeSpecimen() {

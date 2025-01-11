@@ -44,7 +44,7 @@ public class DriveJava extends RobotBase {
                     cachedLiftPos = this.minLift;
                     // prevent jarring motor movement when user tries to go down when achieving lift
                    if (!minLiftAchieved) {
-                        moveMotor(lift, this.minLift, this.liftStationaryPower, true);
+                        driveMotor(lift, this.minLift, this.liftStationaryPower);
                         minLiftAchieved = true;
                     }
 
@@ -56,7 +56,7 @@ public class DriveJava extends RobotBase {
                     cachedLiftPos = this.maxLift;
                     // prevent jarring motor movement when user tries to go up when achieving max
                     if (!maxLiftAchieved) {
-                        moveMotor(lift, this.maxLift, this.liftStationaryPower, true);
+                        driveMotor(lift, this.maxLift, this.liftStationaryPower);
                         maxLiftAchieved = true;
                     }
 
@@ -93,19 +93,22 @@ public class DriveJava extends RobotBase {
                     telemetry.addLine("Not receiving input right now maintaining lift position");
                     alreadySwitchedMode = false;
                     if (!stasisAchieved) {
-                        moveMotor(lift, cachedLiftPos, this.liftStationaryPower, true);
+                        driveMotor(lift, cachedLiftPos, this.liftStationaryPower);
                         stasisAchieved = true;
                     }
                 }
             }
 
-
-            if (gamepad2.left_stick_y < 0) {
+        if( gamepad2.a)
+        {
+            currentArmPosition = 0.69;
+        }
+            if (gamepad2.left_stick_y < 0 && !gamepad2.a) {
                 currentArmPosition += this.manualArmSpeed; // increase by a small step
 //                if(currentArmPosition > 1) currentArmPosition = 1;
 //                if (currentArmPosition >= 0.4288) currentArmPosition = 0.4288;
                 if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
-            } else if (gamepad2.left_stick_y > 0) {
+            } else if (gamepad2.left_stick_y > 0 && !gamepad2.a) {
                 currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
 //                if(currentArmPosition < -1) currentArmPosition = -1;
                 if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;

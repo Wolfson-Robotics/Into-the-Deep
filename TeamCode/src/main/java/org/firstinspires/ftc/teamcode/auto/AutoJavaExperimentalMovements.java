@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.PersistentTelemetry;
@@ -195,6 +196,9 @@ public class AutoJavaExperimentalMovements extends AutoJava {
     @Override
     public void runOpMode() {
         this.commonAutoInit();
+
+        telemetry.addLine(String.valueOf(((VoltageSensor) hardwareMap.voltageSensor).getVoltage()));
+        telemetry.update();
 
         boolean runningTrials = false;
         while (opModeIsActive()) {
