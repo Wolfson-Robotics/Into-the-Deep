@@ -1,8 +1,8 @@
-package org.firstinspires.ftc.teamcode.auto;
+package org.firstinspires.ftc.teamcode.auto.oldautos;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import org.firstinspires.ftc.teamcode.auto.AutoJava;
 
-@Autonomous(name = "AutoJavaBlue", group = "Auto")
+//@Autonomous(name = "AutoJavaBlue", group = "Auto")
 public class AutoJavaBlue extends AutoJava {
 
     public AutoJavaBlue() {

@@ -10,18 +10,9 @@ public class DriveJava extends RobotBase {
 
 //    private double powerFactor = 1;
     private double powerFactor = 0.7095;
-    private final double manualArmSpeed = 0.01;
-
-    private final double liftStationaryPower = 0.05;
-    private final int liftRangeTolerance = 6;
-    private final int minLift = -20;
-    private final int maxLift = -4115;
-
+//    private final int minLift = -20;
 //    private final double maxArm = 0.021;
 //    private final double minArm = 0.065;
-    private final double maxArm = 0.945;
-    private final double minArm = 0.6055;
-
 
     boolean bumperPress = false;
 
@@ -91,7 +82,8 @@ public class DriveJava extends RobotBase {
                             lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                             alreadySwitchedMode = true;
                         }
-                        lift.setPower(gamepad2.right_stick_y * 0.675);
+//                        lift.setPower(gamepad2.right_stick_y * 0.675);
+                        lift.setPower(gamepad2.right_stick_y * liftDriveLim);
                         cachedLiftPos = lift.getCurrentPosition();
                     }
 
@@ -131,13 +123,19 @@ public class DriveJava extends RobotBase {
                 currentArmPosition = 0.241125;
             }*/
             if (gamepad2.dpad_down) {
-                currentArmPosition = 0.8355;
+//                currentArmPosition = 0.8355;
+                currentArmPosition = 0.93;
             }
+            /*
             if (gamepad2.dpad_left) {
                 currentArmPosition = 0.655;
+            }*/
+            if (gamepad2.dpad_right) {
+                currentArmPosition = 0.78;
             }
             if (gamepad2.dpad_up) {
-                currentArmPosition = 0.55;
+//                currentArmPosition = 0.55;
+                currentArmPosition = this.minArm;
             }
             // code lift preset(s) here later
             if (gamepad2.y) {

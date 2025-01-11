@@ -5,15 +5,14 @@ import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConsta
 import org.firstinspires.ftc.teamcode.CustomTelemetryLogger;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class AutoInstructionCodeSerializer {
@@ -66,22 +65,51 @@ public class AutoInstructionCodeSerializer {
         StringBuilder builtInstructions = new StringBuilder("");
 
         String rawLine = "";
+        boolean storeAsync = false, creatingLinearRunnable = false;
         while ((rawLine = codeInput.readLine()) != null) {
 
-            String filteredLine = rawLine.replaceAll("\\r|\\n", "").trim();
+            String filteredLine = rawLine.replaceAll("\\r|\\n|\\t", "").replaceAll(commaRegex, "").trim();
             ArrayList<String> currBuiltInstruction = new ArrayList<>();
+
+            // Checks for special operations
+            if (rawLine.contains(singleCommentMarker)) {
+//                rawLine = singleCommentMarker;
+                builtInstructions.append(filteredLine);
+                builtInstructions.append("\n");
+                continue;
+            }
+            if (filteredLine.contains("() -> {")) {
+                builtInstructions.append((storeAsync ? "\t" : "") + linearRunnableMarker);
+                builtInstructions.append("\n");
+                creatingLinearRunnable = true;
+                continue;
+            }
+            if (filteredLine.equals("}") && creatingLinearRunnable) {
+                builtInstructions.append((storeAsync ? "\t" : "") + endLinearRunnableMarker);
+                builtInstructions.append("\n");
+                creatingLinearRunnable = false;
+                continue;
+            }
+            if (filteredLine.equals(");") && storeAsync) {
+                builtInstructions.append(endThreadingMarker);
+                builtInstructions.append("\n");
+                storeAsync = false;
+                continue;
+            }
+            
 
             // Text file instructions have the operation first then the arguments separated by a space
             // Code instructions split the function name (operation) and the function arguments by parentheses
             // So there will only be two elements in this array, assuming that the code was written well. For instance:
             // moveBot(1, 1, 0, 0); would result in operationSplit being equal to: [ "moveBot", "1, 1, 0, 0);" ]
-            String[] operationSplit = filteredLine.split(openParenthesisRegex);
+            String[] operationSplit = (storeAsync ? (filteredLine
+                    .replaceAll(Pattern.quote("()"), "")
+                    .replaceAll("->", "")) : filteredLine)
+                    .trim()
+                    .split(openParenthesisRegex);
 
 
             String rawOperation = operationSplit[0];
-            if (rawOperation.contains(singleCommentMarker)) {
-                rawOperation = singleCommentMarker;
-            }
             // We split the operation name with a period to support operations on servos and motors,
             // like "armServo.setPosition(0.55);"
             // NOTE: Also, hence forth, operations like these will just be referred to as servo operations,
@@ -119,6 +147,11 @@ public class AutoInstructionCodeSerializer {
                 case multiCommentEnd:
                     currBuiltInstruction.add(filteredLine);
                     break;
+                case multiThreadingMarker:
+                    builtInstructions.append(multiThreadingMarker);
+                    builtInstructions.append("\n");
+                    storeAsync = true;
+                    continue;
                 default:
                     currBuiltInstruction.add(operationName);
                     currBuiltInstruction.add(joinArgsText(operationArgs));
@@ -130,7 +163,7 @@ public class AutoInstructionCodeSerializer {
                 currBuiltInstruction.add(1, operationCall[0]);
             }
 
-            builtInstructions.append(joinArgsText(currBuiltInstruction));
+            builtInstructions.append((storeAsync ? "\t" : "") + (creatingLinearRunnable ? "\t" : "") + joinArgsText(currBuiltInstruction).replaceAll(semicolonRegex, ""));
             builtInstructions.append("\n");
 
 

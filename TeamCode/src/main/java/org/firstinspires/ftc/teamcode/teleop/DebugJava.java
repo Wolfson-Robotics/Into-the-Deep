@@ -1,21 +1,20 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import android.os.Environment;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import android.os.Environment;
-import org.firstinspires.ftc.teamcode.old.ServoSettings;
 import org.firstinspires.ftc.teamcode.CustomTelemetryLogger;
 import org.firstinspires.ftc.teamcode.RobotBase;
-import org.firstinspires.ftc.teamcode.old.ServoSettings;
 import org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionCodeSerializer;
 import org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants;
+import org.firstinspires.ftc.teamcode.old.ServoSettings;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import android.os.Environment;
 
 /**
  * Gamepad 1 drive trains
@@ -29,12 +28,6 @@ public class DebugJava extends RobotBase {
     private CustomTelemetryLogger logger;
     private CustomTelemetryLogger textOutputLogger;
     private CustomTelemetryLogger logger2;
-
-    private double liftStationaryPower = 0.05;
-    private int minLift = -16;
-    private int maxLift = -4115;
-
-    private double manualArmSpeed = 0.01;
 
     private boolean buttonPressed = false;
 
@@ -144,35 +137,35 @@ public class DebugJava extends RobotBase {
                                 telemetry.addData("vert", (leftDif < 0));
                                 telemetry.update();
                                 lastlogged = "vertical";
-                                moves += "moveBot(" + ((Math.abs(leftDif)) / intCon/ticsPerInch) + "," + ((leftDif < 0) ? -1 : 1) + ", 0, 0);\nsleep(150);\n";
+                                moves += "moveBot(" + ((Math.abs(leftDif)) / intCon/ticsPerInch) + "," + ((leftDif < 0) ? 1 : -1) + ", 0, 0);\nsleep(150);\n";
                                 break;
                             case 2:
                                 telemetry.addData("horz", (rightDif > 0));
                                 telemetry.update();
                                 lastlogged = "horizontal";
-                                moves += "moveBot(" + ((Math.abs(rightDif)) / intCon/ticsPerInch) + ",0,0," + ((rightDif > 0) ? -1 : 1) + ");\nsleep(150);\n";
+                                moves += "moveBot(" + ((Math.abs(rightDif)) / intCon/ticsPerInch) + ",0,0," + ((rightDif > 0) ? 1 : -1) + ");\nsleep(150);\n";
                                 break;
                             case 3:
                                 telemetry.addLine("turn");
                                 telemetry.update();
                                 lastlogged = "turn";
-                                moves += ("turnBot(" + (ticsToDegrees((int) (Math.round(leftDif))) + ");\nsleep(250);\n"));
+                                moves += ("turnBot(" + (((double) ((ticsToDegrees((int) (Math.round(leftDif))))))/degConv) + ");\nsleep(250);\n");
                                 break;
                         }
                         allowOtherMovement = 0;
 
-                        if ((gamepad2.right_trigger == 0 && gamepad2.left_trigger == 0 ) && clawChanged)
+                        if ((gamepad2.right_trigger < 0.1 && gamepad2.left_trigger < 0.1 ) && clawChanged)
                             clawChanged = false;
-                        if(gamepad2.right_trigger != 0 && !clawChanged)
+                        if(gamepad2.right_trigger  > 0.1 && !clawChanged)
                         {
                             lastlogged = "claw open";
-                            moves += "claw.setPosition(" + 0.46 + ");\n";
+                            moves += "claw.setPosition(" + this.openClaw + ");\n";
                             clawChanged = true;
                         }
-                        if(gamepad2.left_trigger != 0 && !clawChanged)
+                        if(gamepad2.left_trigger > 0.1 && !clawChanged)
                         {
                             lastlogged = "claw closed";
-                            moves += "claw.setPosition(" + 0.36 + ");\n";
+                            moves += "claw.setPosition(" + this.closedClaw + ");\n";
                             clawChanged = true;
                         }
 
@@ -193,6 +186,7 @@ public class DebugJava extends RobotBase {
                         depadPressed = true;
                         logger.logData(moves);
                         textOutputLogger.logData("\n\n" + AutoInstructionCodeSerializer.serialize(moves) + "\n\n");
+                        logger2.logData(moves);
                         telemetry.addData("logged moves: ", moves);
                         telemetry.update();
                         break;
@@ -206,12 +200,10 @@ public class DebugJava extends RobotBase {
                 if (gamepad2.left_stick_y < 0) {
                     currentArmPosition += this.manualArmSpeed; // increase by a small step
 //                if(currentArmPosition > 1) currentArmPosition = 1;
-//                if (currentArmPosition >= 0.4288) currentArmPosition = 0.4288;
-//                if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
+               if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
                 } else if (gamepad2.left_stick_y > 0) {
                     currentArmPosition -= this.manualArmSpeed; // decrease by a small steps
-//                if(currentArmPosition < -1) currentArmPosition = -1;
-                    // if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
+                    if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
                 }
                 moveServo(arm, currentArmPosition, 20);
 
@@ -289,13 +281,13 @@ public class DebugJava extends RobotBase {
 
                 if (gamepad2.left_trigger > 0.1) {
                     //close
-                    claw.setPosition(0.46);
+                    claw.setPosition(this.closedClaw);
                 }
                 // drop
 
                 if (gamepad2.right_trigger > 0.1) {
                     //open
-                    claw.setPosition(0.36);
+                    claw.setPosition(this.openClaw);
                 }
 
 

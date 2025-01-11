@@ -36,6 +36,8 @@ public class AutoInstructionTextSerializer {
         System.out.println("\n\n\nBEGIN WRITING\n\n\n");
 
         AutoOperation autoOperation;
+        boolean storeAsync = false, creatingLinearRunnable = false;
+        autoIterator:
         while ((autoOperation = reader.readLine()) != null) {
 
 
@@ -52,14 +54,36 @@ public class AutoInstructionTextSerializer {
                 // the error and do whatever they will to fix it (maybe they forgot to remove it after testing
                 // certain parts of autonomous after converting text to code)
                 case singleCommentMarker:
+                    builtInstructions.append("\t" + (storeAsync ? "\t" : "") + (creatingLinearRunnable ? "\t" : ""));
                     skipCurrOperation = true;
                     break;
                 case multiCommentBegin:
                 case multiCommentEnd:
                 case stopMarker:
-                    currBuiltInstruction.add(operationName);
-                    skipCurrOperation = true;
-                    break;
+//                    currBuiltInstruction.add(operationName);
+//                    skipCurrOperation = true;
+                    System.out.println("-------- Encountered STOP operator --------");
+                    break autoIterator;
+                case multiThreadingMarker:
+                    builtInstructions.append("runTasksAsync(");
+                    builtInstructions.append("\n");
+                    storeAsync = true;
+                    continue;
+                case endThreadingMarker:
+                    builtInstructions.append(");");
+                    builtInstructions.append("\n");
+                    storeAsync = false;
+                    continue;
+                case linearRunnableMarker:
+                    builtInstructions.append("() -> {");
+                    builtInstructions.append("\n");
+                    creatingLinearRunnable = true;
+                    continue;
+                case endLinearRunnableMarker:
+                    builtInstructions.append("},");
+                    builtInstructions.append("\n");
+                    creatingLinearRunnable = false;
+                    continue;
 
             }
             if (skipCurrOperation) {
@@ -68,18 +92,22 @@ public class AutoInstructionTextSerializer {
                 builtInstructions.append("\n");
                 continue;
             }
+            String hereOperation = "";
             switch (operationName) {
                 case "setPower":
                 case "setPosition":
-                    builtInstructions.append(operationArgs.get(0) + period + operationName + openParenthesis + operationArgs.get(1) + funcEnd);
+                    hereOperation = operationArgs.get(0) + period + operationName + openParenthesis + operationArgs.get(1) + closeParenthesis;
                     break;
                 case "powerFactor":
-                    builtInstructions.append("this." + operationName + " = " + operationArgs.get(0));
+                    hereOperation = "this." + operationName + " = " + operationArgs.get(0);
                     break;
+                case "":
+                    continue;
                 default:
-                    builtInstructions.append(operationName + openParenthesis + joinArgsCode(operationArgs) + funcEnd);
+                    hereOperation = operationName + openParenthesis + joinArgsCode(operationArgs) + closeParenthesis;
                     break;
             }
+            builtInstructions.append(((storeAsync && !creatingLinearRunnable) ? "() -> " : "") + hereOperation + ((storeAsync && !creatingLinearRunnable) ? "," : semicolon));
 //            builtInstructions.append(joinArgsText(operationArgs));
             builtInstructions.append("\n");
 

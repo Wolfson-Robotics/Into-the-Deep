@@ -45,6 +45,22 @@ public abstract class RobotBase extends LinearOpMode {
     protected final double closedClaw = 0.46;
     protected final double openClaw = 0.30;
 
+    
+    // drive constants
+    protected final double manualArmSpeed = 0.01;
+    
+    protected final double liftStationaryPower = 0.05;
+    protected final int liftRangeTolerance = 6;
+    protected final double liftDriveLim = 0.775;
+
+    protected final int minLift = -5;
+    protected final int maxLift = -4165;
+
+    protected final double maxArm = 0.945;
+    protected final double minArm = 0.6055;
+    
+    
+
 
     protected void initMotors() {
 
