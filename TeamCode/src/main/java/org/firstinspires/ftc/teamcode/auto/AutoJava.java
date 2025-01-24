@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.auto;
 
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.RobotBase;
@@ -9,9 +11,13 @@ import org.firstinspires.ftc.teamcode.old.PixelDetection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -95,60 +101,155 @@ public abstract class AutoJava extends RobotBase {
         moveBotOld(in*ticsPerInch, vertical, pivot, horizontal);
     }
 
-    protected void moveBotDiag(double horizIn, double vertIn, double vertical, double horizontal) {
-        double rfPower = vertical - horizontal, rbPower = vertical + horizontal,
-                lfPower = vertical + horizontal, lbPower = vertical - horizontal;
-//        double rfPower = (vertical * vertIn) + (-horizontal * horizIn);
-//        double rbPower = (vertical * vertIn) + (horizontal * horizIn);
 
-        int vertNeg = (vertical >= 0) ? -1 : 1, horizNeg = (horizontal > 0) ? 1 : -1;
-        int vertTics = rf_drive.getCurrentPosition() + (int) ((vertIn * intCon) * vertNeg);
-        int horizTics = lf_drive.getCurrentPosition() + (int) ((horizIn * intCon) * (horizNeg));
-        Supplier<Boolean> vertCond = vertNeg == -1 ? () -> (rf_drive.getCurrentPosition() > vertTics && opModeIsActive()) : () -> (rf_drive.getCurrentPosition() < vertTics) && opModeIsActive();
-        Supplier<Boolean> horizCond = horizNeg == 1 ? () -> (lf_drive.getCurrentPosition() < horizTics) && opModeIsActive() : () -> (lf_drive.getCurrentPosition() > horizTics) && opModeIsActive();
-/*
-        boolean goVert = true, goHoriz = true;
-        while (true) {
-            if (!vertCond.get()) {
-                rfPower = (-horizontal * horizIn);
-                rbPower = (horizontal * horizIn);
-                goVert = false;
-            }
-            if (!horizCond.get()) {
-                rfPower = (vertical * vertIn);
-                rbPower = (vertical * vertIn);
-                goHoriz = false;
-            }
-            if (!goVert && !goHoriz) {
-                break;
-            }
-            rf_drive.setPower(powerFactor * rfPower);
-            rb_drive.setPower(powerFactor * rbPower);
-            lf_drive.setPower(powerFactor * rbPower);
-            lb_drive.setPower(powerFactor * rfPower);
-        }*/
-//        /*
-        while (vertCond.get() || horizCond.get()) {
-            if (!vertCond.get()) {
-//                rfPower = (-horizontal * horizIn);
-//                rbPower = (horizontal * horizIn);
-                rfPower = -horizontal;
-                rbPower = horizontal;
-            }
-            if (!horizCond.get()) {
-//                rfPower = (vertical * vertIn);
-//                rbPower = (vertical * vertIn);
-                rfPower = vertical;
-                rbPower = vertical;
-            }
-            rf_drive.setPower(powerFactor * rfPower);
-            rb_drive.setPower(powerFactor * rbPower);
-            lf_drive.setPower(powerFactor * rbPower);
-            lb_drive.setPower(powerFactor * rfPower);
-//            idle();
+
+
+
+    protected void moveBotSmooth(double distIN, double vertical, double pivot, double horizontal) {
+        // 23 motor tics = 1 IN
+        int posNeg = (vertical >= 0) ? 1 : -1;
+
+        TreeMap<Integer, Double> distPowerFactor = new TreeMap<>();
+        distPowerFactor.put(900, 0.75);
+        distPowerFactor.put(525, 0.5);
+        distPowerFactor.put(210, 0.25);
+        distPowerFactor.put(100, 0.1);
+
+        List<Integer> traveledRanges = new ArrayList<>();
+
+
+        rf_drive.setPower(powerFactor * (-pivot + (vertical - horizontal)));
+        rb_drive.setPower(powerFactor * (-pivot + vertical + horizontal));
+        lf_drive.setPower(powerFactor * (pivot + vertical + horizontal));
+        lb_drive.setPower(powerFactor * (pivot + (vertical - horizontal)));
+
+        DcMotorEx targetMotor;
+        if (horizontal != 0) {
+            posNeg = (horizontal > 0) ? 1 : -1;
+            targetMotor = lf_drive;
+        } else {
+            posNeg = vertical >= 0 ? -1 : 1;
+            targetMotor = rf_drive;
         }
-//        */
+
+        int motorTics = targetMotor.getCurrentPosition() + (int) ((distIN * intCon * ticsPerInch) * posNeg);
+        Supplier<Boolean> distWait = posNeg == 1 ? () -> targetMotor.getCurrentPosition() < motorTics && opModeIsActive() : () -> targetMotor.getCurrentPosition() > motorTics && opModeIsActive();
+
+        while (distWait.get()) {
+            for (Map.Entry<Integer, Double> powerRange : distPowerFactor.entrySet()) {
+                if (Math.abs(targetMotor.getCurrentPosition() - motorTics) <= powerRange.getKey() && !traveledRanges.contains(powerRange.getKey())) {
+                    double pF = powerRange.getValue();
+                    traveledRanges.add(powerRange.getKey());
+                    rf_drive.setPower(rf_drive.getPower() * pF);
+                    rb_drive.setPower(rb_drive.getPower() * pF);
+                    lf_drive.setPower(lf_drive.getPower() * pF);
+                    lb_drive.setPower(lb_drive.getPower() * pF);
+                    break;
+                }
+            }
+        }
         removePower();
+    }
+
+
+
+
+
+    protected void moveBotDiag(double horizIn, double vertIn, double vertical, double horizontal) {
+
+        rf_drive.setPower(powerFactor * ((vertical - horizontal)));
+        rb_drive.setPower(powerFactor * (vertical + horizontal));
+        lf_drive.setPower(powerFactor * (vertical + horizontal));
+        lb_drive.setPower(powerFactor * ((vertical - horizontal)));
+
+        int lastVertPos = rf_drive.getCurrentPosition();
+        int lastHorizPos = lf_drive.getCurrentPosition();
+        AtomicInteger changeVert = new AtomicInteger(0);
+        AtomicInteger changeHoriz = new AtomicInteger(0);
+        AtomicInteger afterDiagVert = new AtomicInteger(0);
+        AtomicInteger afterDiagHoriz = new AtomicInteger(0);
+
+        int vertNeg = vertical >= 0 ? -1 : 1;
+        int vertTics = rf_drive.getCurrentPosition() + (int) ((vertIn * intCon * ticsPerInch) * vertNeg);
+        int horizNeg = (horizontal > 0) ? 1 : -1;
+        int horizTics = lf_drive.getCurrentPosition() + (int) ((horizIn * intCon * ticsPerInch) * horizNeg);
+
+        Supplier<Boolean> vertWait = vertNeg == 1 ? () -> rf_drive.getCurrentPosition() < vertTics && opModeIsActive() : () -> rf_drive.getCurrentPosition() > vertTics && opModeIsActive();
+        Supplier<Boolean> horizWait = horizNeg == 1 ? () -> lf_drive.getCurrentPosition() < horizTics && opModeIsActive() : () -> lf_drive.getCurrentPosition() > horizTics && opModeIsActive();
+
+        AtomicReference<Boolean> vertDone = new AtomicReference<>(false), horizDone = new AtomicReference<>(false);
+        runTasksAsync(
+                () -> {
+                    while (vertWait.get()) {
+                        if (horizDone.get()) {
+                            if (changeVert.get() == 0) {
+                                changeVert.set(Math.abs(rf_drive.getCurrentPosition()) - Math.abs(lastVertPos));
+                            }
+                            if (afterDiagVert.get() == 0) {
+                                afterDiagVert.set(rf_drive.getCurrentPosition());
+                            }
+                            if (afterDiagHoriz.get() == 0) {
+                                afterDiagHoriz.set(lf_drive.getCurrentPosition());
+                            }
+                            rf_drive.setPower(powerFactor * vertical);
+                            rb_drive.setPower(powerFactor * vertical);
+                            lf_drive.setPower(powerFactor * vertical);
+                            lb_drive.setPower(powerFactor * vertical);
+                        }
+                    }
+                    if (changeVert.get() == 0) {
+                        changeVert.set(Math.abs(rf_drive.getCurrentPosition()) - Math.abs(lastVertPos));
+                    }
+                    if (afterDiagVert.get() == 0) {
+                        afterDiagVert.set(rf_drive.getCurrentPosition());
+                    }
+                    if (afterDiagHoriz.get() == 0) {
+                        afterDiagHoriz.set(lf_drive.getCurrentPosition());
+                    }
+                    vertDone.set(true);
+                },
+                () -> {
+                    while (horizWait.get()) {
+                        if (vertDone.get()) {
+                            if (changeHoriz.get() == 0) {
+                                changeHoriz.set(Math.abs(lf_drive.getCurrentPosition()) - Math.abs(lastHorizPos));
+                            }
+                            if (afterDiagVert.get() == 0) {
+                                afterDiagVert.set(rf_drive.getCurrentPosition());
+                            }
+                            if (afterDiagHoriz.get() == 0) {
+                                afterDiagHoriz.set(lf_drive.getCurrentPosition());
+                            }
+                            rf_drive.setPower(powerFactor * -horizontal);
+                            rb_drive.setPower(powerFactor * horizontal);
+                            lf_drive.setPower(powerFactor * horizontal);
+                            lb_drive.setPower(powerFactor * -horizontal);
+                        }
+                    }
+                    if (changeHoriz.get() == 0) {
+                        changeHoriz.set(Math.abs(lf_drive.getCurrentPosition()) - Math.abs(lastHorizPos));
+                    }
+                    if (afterDiagVert.get() == 0) {
+                        afterDiagVert.set(rf_drive.getCurrentPosition());
+                    }
+                    if (afterDiagHoriz.get() == 0) {
+                        afterDiagHoriz.set(lf_drive.getCurrentPosition());
+                    }
+                    horizDone.set(true);
+                },
+                () -> {
+                    while (!horizDone.get() || !vertDone.get()) idle();
+                    removePower();
+                    telemetry.addData("rf", changeVert.get());
+                    telemetry.addData("rf current", rf_drive.getCurrentPosition());
+                    telemetry.addData("lf", changeHoriz.get());
+                    telemetry.addData("lf current", lf_drive.getCurrentPosition());
+                    telemetry.addData("rf past", lastVertPos);
+                    telemetry.addData("lf past", lastHorizPos);
+                    telemetry.update();
+                    sleep(60000);
+                }
+        );
     }
 
 
@@ -283,6 +384,16 @@ public abstract class AutoJava extends RobotBase {
 
     protected void commonAutoInit() {
         this.initMotors();
+        /*
+        colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorsensor");
+        if (colorSensor != null) {
+            colorSensor.initialize();
+        }
+        */
+        distanceSensor = hardwareMap.get(Rev2mDistanceSensor.class, "distancesensor");
+        if (distanceSensor != null) {
+            distanceSensor.initialize();
+        }
 //        this.initCamera();
 
         while (!isStarted()) {
@@ -298,23 +409,16 @@ public abstract class AutoJava extends RobotBase {
 
 
     protected void grabSample() {
-        /*
-        arm.setPosition(0.9300000000000002);
-        sleep(300);
-        claw.setPosition(0.46);*/
         moveServo(arm, 0.91);
         sleep(250);
         moveServo(claw, 0.46);
         sleep(150);
     }
     protected void sampleInBasket() {
-//        arm.setPosition(0.76);
         moveServo(arm, 0.76);
         sleep(150);
-//        claw.setPosition(0.3);
         moveServo(claw, 0.3);
         sleep(150);
-//        arm.setPosition(0.609);
          moveServo(arm, 0.609);
     }
     protected void restLift() {
@@ -324,7 +428,6 @@ public abstract class AutoJava extends RobotBase {
         moveMotor(lift, -4220, 1.5);
     }
     protected void restArm() {
-//        arm.setPosition(0.6094444444444445);
         moveServo(arm, 0.6094444444444445);
     }
     // stub methods for later

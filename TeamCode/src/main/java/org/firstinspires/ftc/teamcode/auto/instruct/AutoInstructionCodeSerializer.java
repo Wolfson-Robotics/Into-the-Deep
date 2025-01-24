@@ -11,6 +11,7 @@ import java.io.LineNumberReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -37,7 +38,7 @@ public class AutoInstructionCodeSerializer {
 
     // Be sure to SET THE RUN CONFIGURATION BACK TO TEAMCODE WHEN REUPLOADING THE ACTUAL CODE.
     public static void main(String[] args) throws IOException {
-        mainPipeline(getInput("Write outputs to input files?(Y/N):").toLowerCase().equals("y"));
+        mainPipeline(getInput("Write outputs to input files?(Y/N):").equalsIgnoreCase("y"));
     }
 
     private static void mainPipeline(boolean writeSerialized) throws IOException {
@@ -62,37 +63,35 @@ public class AutoInstructionCodeSerializer {
 
     public static String serialize(BufferedReader codeInput) throws IOException {
 
-        StringBuilder builtInstructions = new StringBuilder("");
+        StringBuilder builtInstructions = new StringBuilder();
 
-        String rawLine = "";
+        String rawLine;
         boolean storeAsync = false, creatingLinearRunnable = false;
         while ((rawLine = codeInput.readLine()) != null) {
 
-            String filteredLine = rawLine.replaceAll("\\r|\\n|\\t", "").replaceAll(commaRegex, "").trim();
-            ArrayList<String> currBuiltInstruction = new ArrayList<>();
+            String filteredLine = rawLine.replaceAll("[\\r\\n\\t]", "").trim();
+            filteredLine = filteredLine.endsWith(commaRegex) ? filteredLine.substring(0, filteredLine.length() - 1) : filteredLine;
+
+            List<String> currBuiltInstruction = new ArrayList<>();
 
             // Checks for special operations
             if (rawLine.contains(singleCommentMarker)) {
 //                rawLine = singleCommentMarker;
                 builtInstructions.append(filteredLine);
-                builtInstructions.append("\n");
                 continue;
             }
             if (filteredLine.contains("() -> {")) {
-                builtInstructions.append((storeAsync ? "\t" : "") + linearRunnableMarker);
-                builtInstructions.append("\n");
+                builtInstructions.append(storeAsync ? "\t" : "").append(linearRunnableMarker);
                 creatingLinearRunnable = true;
                 continue;
             }
             if (filteredLine.equals("}") && creatingLinearRunnable) {
-                builtInstructions.append((storeAsync ? "\t" : "") + endLinearRunnableMarker);
-                builtInstructions.append("\n");
+                builtInstructions.append(storeAsync ? "\t" : "").append(endLinearRunnableMarker);
                 creatingLinearRunnable = false;
                 continue;
             }
             if (filteredLine.equals(");") && storeAsync) {
                 builtInstructions.append(endThreadingMarker);
-                builtInstructions.append("\n");
                 storeAsync = false;
                 continue;
             }
@@ -122,7 +121,7 @@ public class AutoInstructionCodeSerializer {
             // element. If it's a regular operation (i.e. "moveBot") then it will be the last element again.
             // We can therefore condense this into just grabbing the last element of the array.
             String operationName = operationCall[operationCall.length - 1];
-            String[] operationArgs = new String[] {};
+            String[] operationArgs;
             if (operationSplit.length > 1) {
 
                 operationArgs = Stream.of(operationSplit[1].split(closeParenthesisRegex)[0].split(commaRegex))
@@ -149,7 +148,6 @@ public class AutoInstructionCodeSerializer {
                     break;
                 case multiThreadingMarker:
                     builtInstructions.append(multiThreadingMarker);
-                    builtInstructions.append("\n");
                     storeAsync = true;
                     continue;
                 default:
@@ -163,15 +161,13 @@ public class AutoInstructionCodeSerializer {
                 currBuiltInstruction.add(1, operationCall[0]);
             }
 
-            builtInstructions.append((storeAsync ? "\t" : "") + (creatingLinearRunnable ? "\t" : "") + joinArgsText(currBuiltInstruction).replaceAll(semicolonRegex, ""));
-            builtInstructions.append("\n");
-
+            builtInstructions.append(storeAsync ? "\t" : "").append(creatingLinearRunnable ? "\t" : "").append(joinArgsText(currBuiltInstruction).replaceAll(semicolonRegex, ""));
 
 
         }
         codeInput.close();
 
-        return builtInstructions.toString();
+        return String.join(builtInstructions, "\n");
 
     }
 
