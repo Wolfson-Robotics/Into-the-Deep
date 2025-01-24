@@ -1,9 +1,23 @@
 package org.firstinspires.ftc.teamcode.auto.instruct;
 
-import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.*;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.closeParenthesis;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.endLinearRunnableMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.endThreadingMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.joinArgsCode;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.joinArgsText;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.linearRunnableMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiCommentBegin;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiCommentEnd;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.multiThreadingMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.openParenthesis;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.period;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.semicolon;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.singleCommentMarker;
+import static org.firstinspires.ftc.teamcode.auto.instruct.AutoInstructionConstants.stopMarker;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class AutoInstructionTextSerializer {
@@ -30,7 +44,7 @@ public class AutoInstructionTextSerializer {
     public static void main(String[] args) throws IOException {
 
 
-        StringBuilder builtInstructions = new StringBuilder("");
+        StringBuilder builtInstructions = new StringBuilder();
         AutoInstructionReader reader = new AutoInstructionReader(getInput("Input path of file:"));
 
         System.out.println("\n\n\nBEGIN WRITING\n\n\n");
@@ -42,9 +56,9 @@ public class AutoInstructionTextSerializer {
 
 
             final String operationName = autoOperation.getOperationName();
-            final ArrayList<String> operationArgs = autoOperation.getOperationArgs();
+            final List<String> operationArgs = autoOperation.getOperationArgs();
 
-            ArrayList<String> currBuiltInstruction = new ArrayList<>();
+            List<String> currBuiltInstruction = new ArrayList<>();
 
 
             boolean skipCurrOperation = false;
@@ -54,7 +68,7 @@ public class AutoInstructionTextSerializer {
                 // the error and do whatever they will to fix it (maybe they forgot to remove it after testing
                 // certain parts of autonomous after converting text to code)
                 case singleCommentMarker:
-                    builtInstructions.append("\t" + (storeAsync ? "\t" : "") + (creatingLinearRunnable ? "\t" : ""));
+                    builtInstructions.append("\t").append(storeAsync ? "\t" : "").append(creatingLinearRunnable ? "\t" : "");
                     skipCurrOperation = true;
                     break;
                 case multiCommentBegin:
@@ -66,22 +80,18 @@ public class AutoInstructionTextSerializer {
                     break autoIterator;
                 case multiThreadingMarker:
                     builtInstructions.append("runTasksAsync(");
-                    builtInstructions.append("\n");
                     storeAsync = true;
                     continue;
                 case endThreadingMarker:
                     builtInstructions.append(");");
-                    builtInstructions.append("\n");
                     storeAsync = false;
                     continue;
                 case linearRunnableMarker:
                     builtInstructions.append("() -> {");
-                    builtInstructions.append("\n");
                     creatingLinearRunnable = true;
                     continue;
                 case endLinearRunnableMarker:
                     builtInstructions.append("},");
-                    builtInstructions.append("\n");
                     creatingLinearRunnable = false;
                     continue;
 
@@ -89,10 +99,9 @@ public class AutoInstructionTextSerializer {
             if (skipCurrOperation) {
                 currBuiltInstruction.add(joinArgsText(operationArgs));
                 builtInstructions.append(joinArgsText(currBuiltInstruction));
-                builtInstructions.append("\n");
                 continue;
             }
-            String hereOperation = "";
+            String hereOperation;
             switch (operationName) {
                 case "setPower":
                 case "setPosition":
@@ -107,16 +116,15 @@ public class AutoInstructionTextSerializer {
                     hereOperation = operationName + openParenthesis + joinArgsCode(operationArgs) + closeParenthesis;
                     break;
             }
-            builtInstructions.append(((storeAsync && !creatingLinearRunnable) ? "() -> " : "") + hereOperation + ((storeAsync && !creatingLinearRunnable) ? "," : semicolon));
+            builtInstructions.append((storeAsync && !creatingLinearRunnable) ? "() -> " : "").append(hereOperation).append((storeAsync && !creatingLinearRunnable) ? "," : semicolon);
 //            builtInstructions.append(joinArgsText(operationArgs));
-            builtInstructions.append("\n");
 
 
         }
         reader.close();
 
 
-        System.out.println(builtInstructions.toString());
+        System.out.println(String.join(builtInstructions, "\n"));
         System.out.println("\n\n\nEND WRITING\n\n\n");
 
         main(args);

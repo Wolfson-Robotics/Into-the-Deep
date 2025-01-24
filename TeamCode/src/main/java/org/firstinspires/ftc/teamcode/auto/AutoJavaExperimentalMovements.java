@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode.auto;
 
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.PersistentTelemetry;
 
 @TeleOp(name = "AutoJavaExperimentalMovements")
@@ -177,6 +178,17 @@ public class AutoJavaExperimentalMovements extends AutoJava {
         );
     }
 
+    public void miscTrial3() {
+//        moveBotDiag(10, 10, 1, 1);
+//        moveBotDiag(10, 40, 1, 1);
+        moveBotDiag(25.23172628304821, 35.0108864696734, 1, 1);
+        sleep(300);
+    }
+    public void miscTrial4() {
+        moveBotSmooth(30, 1, 0, 0);
+        sleep(300);
+    }
+
 
 
 
@@ -197,11 +209,52 @@ public class AutoJavaExperimentalMovements extends AutoJava {
     public void runOpMode() {
         this.commonAutoInit();
 
-        telemetry.addLine(String.valueOf(((VoltageSensor) hardwareMap.voltageSensor).getVoltage()));
-        telemetry.update();
+//        telemetry.addLine(String.valueOf(((VoltageSensor) hardwareMap.voltageSensor).getVoltage()));
+//        telemetry.update();
+
 
         boolean runningTrials = false;
         while (opModeIsActive()) {
+
+            if (distanceSensor != null) {
+                pTelem.setData("distance", distanceSensor.getDistance(DistanceUnit.INCH));
+                pTelem.update();
+            }
+/*
+            if (colorSensor != null) {
+                int red = colorSensor.red();
+                int green = colorSensor.green();
+                int blue = colorSensor.blue();
+                pTelem.setData("alpha", colorSensor.alpha());
+                pTelem.setData("red raw light", red);
+                pTelem.setData("green raw light", green);
+                pTelem.setData("blue raw light", blue);
+                int max = Math.max(red, Math.max(green, blue));
+                double normred = (double)red/max;
+                double normgreen = (double)green/max;
+                double normblue = (double)blue/max;
+                pTelem.setData("red normalized", normred);
+                pTelem.setData("green normalized", normgreen);
+                pTelem.setData("blue normalized", normblue);
+                double redFactor = (double) colorSensor.red() / (double) colorSensor.blue();
+                double greenFactor = (double) colorSensor.green() / (double) colorSensor.blue();
+                if (normgreen >= 0.8 && normred >= 0.7 && normblue < 0.7 && colorSensor.getRawLightDetected() > 75) {
+                    pTelem.setLine("sees", "sees yellow");
+                } else {
+                    pTelem.setLine("sees", "sees nothing");
+                }
+
+                pTelem.setData("raw light true", colorSensor.getRawLightDetected());
+                pTelem.setData("raw light max", colorSensor.getRawLightDetectedMax());
+                pTelem.setData("raw light optical", colorSensor.rawOptical());
+                pTelem.setData("distance in inches", colorSensor.getDistance(DistanceUnit.INCH));
+                pTelem.setData("raw rgb", colorSensor.argb());
+
+                int raw = colorSensor.argb();
+                pTelem.setLine("rgb deconstructed", "rgb deconstructed: " + Color.red(raw) + ", " + Color.green(raw) + ", " + Color.blue(raw));
+                pTelem.update();
+            }*/
+
 
             if (gamepad1.left_stick_x > 0.5 && gamepad1.right_stick_x < -0.5 && !runningTrials) {
                 runningTrials = true;
@@ -243,13 +296,13 @@ public class AutoJavaExperimentalMovements extends AutoJava {
                 trial1();
             }
             if (gamepad1.dpad_right) {
-                trial2();
+//                movetillyellow(false);
             }
             if (gamepad1.dpad_down) {
                 trial3();
             }
             if (gamepad1.dpad_left) {
-                trial4();
+//                movetillyellow(true);
             }
             if (gamepad1.y) {
                 trial5();
@@ -263,6 +316,14 @@ public class AutoJavaExperimentalMovements extends AutoJava {
             if (gamepad1.x) {
                 trial8();
             }
+            // diagonal
+            if (gamepad1.left_bumper) {
+                miscTrial3();
+            }
+            // smooth
+            if (gamepad1.right_bumper) {
+                miscTrial4();
+            }
             /*
             if (gamepad1.a) {
                 trial5();
@@ -273,6 +334,67 @@ public class AutoJavaExperimentalMovements extends AutoJava {
 
         }
     }
+
+
+    /*
+     private void movetillyellow(boolean left)
+    {
+        int red = colorSensor.red();
+        int green = colorSensor.green();
+        int blue = colorSensor.blue();
+        int max = Math.max(red, Math.max(green, blue));
+        double normred = (double)red/max;
+        double normgreen = (double)green/max;
+        double normblue = (double)blue/max;
+        double horizontal = (left) ? -0.45 : 0.45;
+        boolean yellow = false;
+        rf_drive.setPower(-horizontal);
+        rb_drive.setPower(horizontal);
+        lf_drive.setPower(horizontal);
+        lb_drive.setPower(-horizontal);
+        while(!yellow && opModeIsActive()) {
+            red = colorSensor.red();
+            green = colorSensor.green();
+            blue = colorSensor.blue();
+            telemetry.addData("alpha1", colorSensor.alpha());
+            telemetry.addData("red raw light1", red);
+            telemetry.addData("green raw light1", green);
+            telemetry.addData("blue raw light1", blue);
+            max = Math.max(red, Math.max(green, blue));
+            normred = (double) red / max;
+            normgreen = (double) green / max;
+            normblue = (double) blue / max;
+            double redFactor = (double) colorSensor.red() / (double) colorSensor.blue();
+            double greenFactor = (double) colorSensor.green() / (double) colorSensor.blue();
+            telemetry.addData("red normalized1", normred);
+            telemetry.addData("green normalized1", normgreen);
+            telemetry.addData("blue normalized1", normblue);
+//            if (normgreen >= 0.8 && normred >= 0.7 && normblue < 0.7 && colorSensor.getRawLightDetected() > 75) {
+            if (redFactor > 1.6 && greenFactor > 1.6 && colorSensor.getRawLightDetected() > 80) {
+                yellow = true;
+            }
+                telemetry.update();
+            }
+        telemetry.addLine("done");
+        telemetry.update();
+        removePower();
+        sleep(300);
+        claw.setPosition(openClaw);
+        sleep(400);
+        grabSample();
+
+
+
+
+
+    }*/
+
+
+
+
+
+
+
 
     private void print(String message) {
 //        telemetry.addLine(message);

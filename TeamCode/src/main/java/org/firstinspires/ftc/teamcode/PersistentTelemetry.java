@@ -46,6 +46,20 @@ public class PersistentTelemetry {
         return this.telemetryLines.get(lineIndex);
     }
 
+    public void addData(String caption, int data) {
+        addLine(caption + ": " + data);
+    }
+    public void addData(String caption, double data) {
+        addLine(caption + ": " + data);
+    }
+
+    public void setData(String caption, int data) {
+        setLine(caption, caption + ": " + data);
+    }
+    public void setData(String caption, double data) {
+        setLine(caption, caption + ": " + data);
+    }
+
 
     public void update() {
         this.telemetryLines.forEach(telemetryLine -> {

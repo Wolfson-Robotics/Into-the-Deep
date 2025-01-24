@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.auto.instruct;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class AutoInstructionConstants {
@@ -50,20 +50,20 @@ public class AutoInstructionConstants {
 
 
 
-    public static final String joinArgsText(ArrayList<String> operationArgs) {
+    public static String joinArgsText(List<String> operationArgs) {
         return String.join(argJoiner, operationArgs);
     }
 
-    public static final String joinArgsText(String[] operationArgs) {
+    public static String joinArgsText(String[] operationArgs) {
         return String.join(argJoiner, operationArgs);
     }
 
 
-    public static final String joinArgsCode(ArrayList<String> operationArgs) {
+    public static String joinArgsCode(List<String> operationArgs) {
         return String.join(codeJoiner, operationArgs);
     }
 
-    public static final String joinArgsCode(String[] operationArgs) {
+    public static String joinArgsCode(String[] operationArgs) {
         return String.join(codeJoiner, operationArgs);
     }
 

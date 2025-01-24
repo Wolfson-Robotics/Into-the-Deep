@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -26,6 +27,9 @@ public abstract class RobotBase extends LinearOpMode {
 
     protected OpenCvCamera camera;
     protected String webcamName = "Webcam 1";
+
+//    protected RevColorSensorV3 colorSensor;
+    protected Rev2mDistanceSensor distanceSensor;
 
     protected double powerFactor = 1;
 
