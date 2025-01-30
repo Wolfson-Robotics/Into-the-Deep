@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.PersistentTelemetry;
 import org.firstinspires.ftc.teamcode.RobotBase;
 import org.firstinspires.ftc.teamcode.old.PixelDetection;
 
@@ -28,6 +30,14 @@ public abstract class AutoJava extends RobotBase {
 
     protected PixelDetection pixelDetection;
     protected boolean blue = false;
+
+    protected double lowestJunk = 330;
+    protected double highestJunk = -1;
+    protected final double defaultLowestJunk = 9.5;
+    protected final double defaultHighestJunk = 13.75;
+    protected final double noLowestJunk = lowestJunk;
+    protected final double noHighestJunk = highestJunk;
+    protected final double maxDist = 300;
 
 
     protected AutoJava(boolean blue) {
@@ -180,7 +190,7 @@ public abstract class AutoJava extends RobotBase {
         AtomicReference<Boolean> vertDone = new AtomicReference<>(false), horizDone = new AtomicReference<>(false);
         runTasksAsync(
                 () -> {
-                    while (vertWait.get()) {
+                    while (vertWait.get() && opModeIsActive()) {
                         if (horizDone.get()) {
                             if (changeVert.get() == 0) {
                                 changeVert.set(Math.abs(rf_drive.getCurrentPosition()) - Math.abs(lastVertPos));
@@ -209,7 +219,7 @@ public abstract class AutoJava extends RobotBase {
                     vertDone.set(true);
                 },
                 () -> {
-                    while (horizWait.get()) {
+                    while (horizWait.get() && opModeIsActive()) {
                         if (vertDone.get()) {
                             if (changeHoriz.get() == 0) {
                                 changeHoriz.set(Math.abs(lf_drive.getCurrentPosition()) - Math.abs(lastHorizPos));
@@ -238,7 +248,7 @@ public abstract class AutoJava extends RobotBase {
                     horizDone.set(true);
                 },
                 () -> {
-                    while (!horizDone.get() || !vertDone.get()) idle();
+                    while ((!horizDone.get() || !vertDone.get()) && opModeIsActive()) idle();
                     removePower();
                     telemetry.addData("rf", changeVert.get());
                     telemetry.addData("rf current", rf_drive.getCurrentPosition());
@@ -397,7 +407,20 @@ public abstract class AutoJava extends RobotBase {
 //        this.initCamera();
 
         while (!isStarted()) {
-
+            if ((gamepad1.right_trigger > 0.1 || gamepad2.right_trigger > 0.1)  && distanceSensor != null) {
+                telemetry.addLine("Calibrating");
+                double currDist = distanceSensor.getDistance(DistanceUnit.INCH);
+                if (currDist < maxDist) {
+                    if (currDist < lowestJunk) {
+                        lowestJunk = currDist;
+                    } else if (currDist > highestJunk) {
+                        highestJunk = currDist;
+                    }
+                }
+            }
+            telemetry.addLine("Current lowest junk: " + lowestJunk);
+            telemetry.addLine("Current highest junk: " + highestJunk);
+            telemetry.update();
         }
 
         telemetry.addLine("Waiting for start");
@@ -434,6 +457,62 @@ public abstract class AutoJava extends RobotBase {
     protected void placeSpecimen() {
 
     }
+
+
+
+    public void moveTillObjectSeen(boolean right) {
+        if (lowestJunk == noLowestJunk) {
+            lowestJunk = defaultLowestJunk;
+            pTelem.addLine("Did not calibrate, going to default values");
+        }
+        if (highestJunk == noHighestJunk) {
+            highestJunk = defaultHighestJunk;
+            pTelem.addLine("Did not calibrate, going to default values");
+        }
+
+        pTelem.addLine("Using lowestJunk as " + lowestJunk);
+        pTelem.addLine("Using highestJunk as " + highestJunk);
+        pTelem.update();
+
+        double distSeen = distanceSensor.getDistance(DistanceUnit.INCH);
+        pTelem.setData("distance", distSeen);
+        pTelem.update();
+
+        double horizontal = (right) ? 0.45 : -0.45;
+        rf_drive.setPower(-horizontal);
+        rb_drive.setPower(horizontal);
+        lf_drive.setPower(horizontal);
+        lb_drive.setPower(-horizontal);
+
+        boolean found = false;
+        while (!found && opModeIsActive()) {
+            distSeen = distanceSensor.getDistance(DistanceUnit.INCH);
+            if (distSeen < lowestJunk || (distSeen > highestJunk && distSeen < maxDist)) {
+                removePower();
+                List<Double> distancesWhile = new ArrayList<>();
+                runTasksAsync(
+                        () -> sleep(100),
+                        () -> distancesWhile.add(distanceSensor.getDistance(DistanceUnit.INCH))
+                );
+                double avgDeviance = Math.abs(distancesWhile.stream().mapToDouble(Double::doubleValue).average().orElseThrow(() -> new IllegalArgumentException("a")) - distSeen);
+                if (avgDeviance < 0.445) {
+                    pTelem.addLine("Confirmed object location with average " + avgDeviance);
+                    pTelem.update();
+                    break;
+                }
+            }
+            rf_drive.setPower(-horizontal);
+            rb_drive.setPower(horizontal);
+            lf_drive.setPower(horizontal);
+            lb_drive.setPower(-horizontal);
+        }
+        pTelem.addLine("Done");
+        pTelem.update();
+        removePower();
+        sleep(300);
+    }
+    
+    
 
 
     public abstract void runOpMode();

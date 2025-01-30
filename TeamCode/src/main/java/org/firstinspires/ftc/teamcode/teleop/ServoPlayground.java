@@ -25,7 +25,7 @@ public class ServoPlayground extends RobotBase {
 
         waitForStart();
 
-        final String[] servos = new String[] { "lift", "arm", "claw" };
+        final String[] servos = new String[] { "lift", "arm", "claw", "slideServo" };
         final char[] digitCycle = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.' };
 
         ArrayList<HashMap<String, String>> positionsToNavigateTo = new ArrayList<>();
@@ -171,6 +171,9 @@ public class ServoPlayground extends RobotBase {
                         case "claw":
 //                            moveServo(claw, Double.parseDouble(rawServoPos), 20);
                             claw.setPosition(Double.parseDouble(rawServoPos));
+                            break;
+                        case "slideServo":
+                            slideServo.setPosition(Double.parseDouble(rawServoPos));
                             break;
                     }
                     persistentTelemetry.addLine("Done moving");

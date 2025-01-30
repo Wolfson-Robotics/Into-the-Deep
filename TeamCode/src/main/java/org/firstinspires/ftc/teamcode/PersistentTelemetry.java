@@ -22,6 +22,18 @@ public class PersistentTelemetry {
     }
 
 
+    private int findLine(String searchContent) {
+        // iterate backwards because we want to modify most recent line not older ones
+        searchContent = searchContent.trim().toLowerCase();
+        for (int lineIndex = (this.telemetryLines.size() - 1); lineIndex >= 0; lineIndex--) {
+            if (this.telemetryLines.get(lineIndex).trim().toLowerCase().contains(searchContent)) {
+                return lineIndex;
+            }
+        }
+        return -1;
+    }
+
+
     public void addLine(String content) {
         this.telemetryLines.add(content);
     }
@@ -30,16 +42,12 @@ public class PersistentTelemetry {
         this.telemetryLines.set(lineIndex, content);
     }
     public void setLine(String searchContent, String content) {
-        // iterate backwards because we want to modify most recent line not older ones
-        searchContent = searchContent.trim().toLowerCase();
-        for (int lineIndex = (this.telemetryLines.size() - 1); lineIndex >= 0; lineIndex--) {
-            if (this.telemetryLines.get(lineIndex).trim().toLowerCase().contains(searchContent)) {
-                this.setLine(lineIndex, content);
-                return;
-            }
+        int foundLine = findLine(searchContent);
+        if (foundLine == -1) {
+            this.addLine(content);
+        } else {
+            this.setLine(foundLine, content);
         }
-        this.addLine(content);
-
     }
 
     public String getLine(int lineIndex) {
@@ -60,11 +68,14 @@ public class PersistentTelemetry {
         setLine(caption, caption + ": " + data);
     }
 
+    public void removeLine(String lineContent) {
+        int foundLine = findLine(lineContent);
+        if (foundLine != -1) this.telemetryLines.remove(foundLine);
+    }
+
 
     public void update() {
-        this.telemetryLines.forEach(telemetryLine -> {
-            this.telemetry.addLine(telemetryLine);
-        });
+        this.telemetryLines.forEach(telemetryLine -> this.telemetry.addLine(telemetryLine));
         this.telemetry.update();
     }
     public void clear() {
