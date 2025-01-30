@@ -7,6 +7,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.PersistentTelemetry;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @TeleOp(name = "AutoJavaExperimentalMovements")
 public class AutoJavaExperimentalMovements extends AutoJava {
 
@@ -15,6 +18,9 @@ public class AutoJavaExperimentalMovements extends AutoJava {
 
     private double startRf = 0;
     private double startLf = 0;
+
+    private double lowestJunk = Double.POSITIVE_INFINITY;
+    private double highestJunk = Double.NEGATIVE_INFINITY;
 
     public AutoJavaExperimentalMovements() {
         super(true);
@@ -181,7 +187,8 @@ public class AutoJavaExperimentalMovements extends AutoJava {
     public void miscTrial3() {
 //        moveBotDiag(10, 10, 1, 1);
 //        moveBotDiag(10, 40, 1, 1);
-        moveBotDiag(25.23172628304821, 35.0108864696734, 1, 1);
+//        moveBotDiag(25.23172628304821, 35.0108864696734, 1, 1);
+        moveBotDiag(35.0108864696734, 25.23172628304821, 1, 1);
         sleep(300);
     }
     public void miscTrial4() {
@@ -297,12 +304,14 @@ public class AutoJavaExperimentalMovements extends AutoJava {
             }
             if (gamepad1.dpad_right) {
 //                movetillyellow(false);
+                moveTillObjectSeen(true);
             }
             if (gamepad1.dpad_down) {
                 trial3();
             }
             if (gamepad1.dpad_left) {
 //                movetillyellow(true);
+                moveTillObjectSeen(false);
             }
             if (gamepad1.y) {
                 trial5();
@@ -323,6 +332,26 @@ public class AutoJavaExperimentalMovements extends AutoJava {
             // smooth
             if (gamepad1.right_bumper) {
                 miscTrial4();
+            }
+
+            if (gamepad1.left_trigger > 0.1) {
+                double currDist = distanceSensor.getDistance(DistanceUnit.INCH);
+                if (currDist < 300) {
+                    if (currDist < lowestJunk) {
+                        lowestJunk = currDist;
+                    } else if (currDist > highestJunk) {
+                        highestJunk = currDist;
+                    }
+                }
+                pTelem.setLine("Calibra", "Calibrating");
+                pTelem.setData("Current lowest junk", lowestJunk);
+                pTelem.setData("Current highest junk", highestJunk);
+                pTelem.update();
+            } else {
+                pTelem.removeLine("Calibra");
+                pTelem.removeLine("Current lowest junk");
+                pTelem.removeLine("Current highest junk");
+                pTelem.update();
             }
             /*
             if (gamepad1.a) {
@@ -388,6 +417,65 @@ public class AutoJavaExperimentalMovements extends AutoJava {
 
 
     }*/
+
+
+
+    public void moveTillObjectSeen(boolean left) {
+//        double lowestJunk = 6d, highestJunk = 9.6d;
+//        double lowestJunk = 9.5, highestJunk = 13.75;
+        if (lowestJunk == Double.NEGATIVE_INFINITY) {
+            lowestJunk = 9.5;
+            pTelem.addLine("Did not calibrate, going to default values");
+            sleep(2500);
+        }
+        if (highestJunk == Double.POSITIVE_INFINITY) {
+            highestJunk = 13.75;
+            pTelem.addLine("Did not calibrate, going to default values");
+            sleep(2500);
+        }
+        pTelem.addLine("Using lowestJunk as " + lowestJunk);
+        pTelem.addLine("Using highestJunk as " + highestJunk);
+        pTelem.update();
+
+        double distSeen = distanceSensor.getDistance(DistanceUnit.INCH);
+        pTelem.setData("distance", distSeen);
+        pTelem.update();
+
+        double horizontal = (left) ? -0.45 : 0.45;
+        rf_drive.setPower(-horizontal);
+        rb_drive.setPower(horizontal);
+        lf_drive.setPower(horizontal);
+        lb_drive.setPower(-horizontal);
+
+        boolean found = false;
+        while (!found && opModeIsActive()) {
+            distSeen = distanceSensor.getDistance(DistanceUnit.INCH);
+            if (distSeen < lowestJunk || (distSeen > highestJunk && distSeen < 300)) {
+                removePower();
+                List<Double> distancesWhile = new ArrayList<>();
+                runTasksAsync(
+                        () -> sleep(200),
+                        () -> distancesWhile.add(distanceSensor.getDistance(DistanceUnit.INCH))
+                );
+                if (Math.abs(distancesWhile.stream().mapToDouble(Double::doubleValue).average().orElseThrow(() -> new IllegalArgumentException("a")) - distSeen) < 0.8) {
+                    pTelem.addLine("Confirmed object location");
+                    pTelem.update();
+                    break;
+                }
+            }
+            rf_drive.setPower(-horizontal);
+            rb_drive.setPower(horizontal);
+            lf_drive.setPower(horizontal);
+            lb_drive.setPower(-horizontal);
+        }
+        pTelem.addLine("Done");
+        pTelem.update();
+        removePower();
+        sleep(300);
+        claw.setPosition(openClaw);
+        sleep(400);
+        grabSample();
+    }
 
 
 

@@ -25,6 +25,10 @@ public abstract class RobotBase extends LinearOpMode {
     protected Servo arm;
     protected Servo claw;
 
+    // Second intake servos
+    protected Servo slideServo;
+
+
     protected OpenCvCamera camera;
     protected String webcamName = "Webcam 1";
 
@@ -62,8 +66,10 @@ public abstract class RobotBase extends LinearOpMode {
 
     protected final double maxArm = 0.945;
     protected final double minArm = 0.6055;
-    
-    
+
+
+    protected final PersistentTelemetry pTelem = new PersistentTelemetry(telemetry);
+
 
 
     protected void initMotors() {
@@ -80,6 +86,8 @@ public abstract class RobotBase extends LinearOpMode {
 //        hang = hardwareMap.get(DcMotorEx.class, "hang");
         arm = hardwareMap.get(Servo.class, "arm");
         claw = hardwareMap.get(Servo.class, "claw");
+
+        slideServo = hardwareMap.get(Servo.class, "thingy");
 
 //        claw.setDirection(Servo.Direction.REVERSE);
 //        claw.setPosition(-0.82);

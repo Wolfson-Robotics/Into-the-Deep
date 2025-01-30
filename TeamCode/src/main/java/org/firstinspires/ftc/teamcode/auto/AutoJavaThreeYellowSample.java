@@ -3,9 +3,9 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 @Autonomous(name = "AutoJavaThreeYellowSample", group = "Auto")
-public class AutoJavaRedSample extends AutoJava {
+public class AutoJavaThreeYellowSample extends AutoJava {
 
-    public AutoJavaRedSample() {
+    public AutoJavaThreeYellowSample() {
         super(true);
     }
 

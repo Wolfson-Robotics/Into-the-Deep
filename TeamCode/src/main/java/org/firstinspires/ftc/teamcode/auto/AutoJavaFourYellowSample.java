@@ -43,7 +43,8 @@ public class AutoJavaFourYellowSample extends AutoJava {
                     // turnBot 94.913043478260876
                     turnBot(90);
                     sleep(250);
-                    moveBot(1.7712286158631414, 0, 0, 0.75);
+//                    moveBot(1.7712286158631414, 0, 0, 0.75);
+                    moveBot(5.77, 0, 0, 0.75);
                     sleep(50);
                     // moveBot 19.267 0.75 0 0
                     // moveBot 17.267 0.75 0 0
@@ -51,10 +52,11 @@ public class AutoJavaFourYellowSample extends AutoJava {
                 }
                 );
         // right sample grab sample
-        sleep(150);
-        moveBot(3, 0 , 0, -1);
+        sleep(250);
+        moveTillObjectSeen(false);
+//        moveBot(3, 0 , 0, -1);
         grabSample();
-        moveBot(1, 0 , 0, 1);
+//        moveBot(1, 0 , 0, 1);
         sleep(150);
         // moveBot 2 0.75 0 0
         // sleep 250
@@ -103,15 +105,19 @@ public class AutoJavaFourYellowSample extends AutoJava {
                     // moveBot 9.995 0.75 0 0
                     // moveBot 9.665 0.75 0 0
                     // moveBot 8.885 0.75 0 0
+                    moveBot(5, 0, 0, 0.75);
+                    sleep(300);
                     moveBot(7.125, 0.75, 0, 0);
                 }
-                );
+        );
         // middle sample grab sample
-        moveBot(3, 0, 0, -1);
-        moveBot(1, -1, 0, 0);
+//        moveBot(3, 0, 0, -1);
+//        moveBot(1, -1, 0, 0);
+        sleep(150);
+        moveTillObjectSeen(false);
         sleep(150);
         grabSample();
-        sleep(100);
+        sleep(150);
         //moveBot(1, 1, 0, 0);
         moveBot(4, 0, 0, 1);
         // middle sample go to basket
@@ -129,7 +135,7 @@ public class AutoJavaFourYellowSample extends AutoJava {
                     // moveBot 6.182099533437016 0.65 0 0
                     turnBot(65.926086956521742);
                 }
-                );
+        );
         // middle sample basket operation
         sleep(150);
         // moveBot 7.455 0.65 0 0

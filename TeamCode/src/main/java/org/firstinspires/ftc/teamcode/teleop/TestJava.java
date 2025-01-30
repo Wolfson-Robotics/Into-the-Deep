@@ -16,6 +16,7 @@ public class TestJava extends RobotBase {
             telemetry.addLine("Dpad down is wheel");
             telemetry.addLine("Dpad left is claw");
             telemetry.addLine("Dpad right is claw quick");
+            telemetry.addLine("Dpad up is slide servo");
             telemetry.update();
             if (gamepad1.dpad_down) {
                 wheelTest();
@@ -25,6 +26,9 @@ public class TestJava extends RobotBase {
             }
             if (gamepad1.dpad_right) {
                 clawTestQuick();
+            }
+            if (gamepad1.dpad_up) {
+                slideServoTest();
             }
         }
     }
@@ -74,6 +78,14 @@ public class TestJava extends RobotBase {
     void clawTest() {
         for (double i = 1; i >-1; i -= 0.01) {
             claw.setPosition(i);
+            telemetry.addData("pos: ", i);
+            telemetry.update();
+            sleep(1500);
+        }
+    }
+    void slideServoTest() {
+        for (double i = 1; i >-1; i -= 0.01) {
+            slideServo.setPosition(i);
             telemetry.addData("pos: ", i);
             telemetry.update();
             sleep(1500);
