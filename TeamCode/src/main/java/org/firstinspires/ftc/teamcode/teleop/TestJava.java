@@ -13,10 +13,16 @@ public class TestJava extends RobotBase {
         waitForStart();
         while (opModeIsActive()) {
             telemetry.addLine("Manual:");
+            telemetry.addLine("Dpad up is roller test");
             telemetry.addLine("Dpad down is wheel");
             telemetry.addLine("Dpad left is claw");
             telemetry.addLine("Dpad right is claw quick");
+            telemetry.addLine("a is arm test");
+            telemetry.addLine("b is is slide test");
             telemetry.update();
+            if (gamepad1.a) {
+                armTest();
+            }
             if (gamepad1.dpad_down) {
                 wheelTest();
             }
@@ -28,6 +34,10 @@ public class TestJava extends RobotBase {
             }
             if (gamepad1.dpad_up) {
                 rollerTest();
+            }
+            if(gamepad1.b)
+            {
+                slideTest();
             }
         }
     }
@@ -89,6 +99,14 @@ public class TestJava extends RobotBase {
             telemetry.update();
         }
     }
+    void armTest() {
+        for (double i = 0.3; i >= -1; i -= 0.05) {
+            arm.setPosition(i);
+            telemetry.addData("pos: ", i);
+            telemetry.update();
+            sleep(1000);
+        }
+    }
     void rollerTest() {
         telemetry.addLine("testing leftwheel pos power");
         telemetry.addData("leftwheel dir", leftRoller.getDirection().name());
@@ -116,6 +134,52 @@ public class TestJava extends RobotBase {
         rightRoller.setPower(0);
     }
 
+    void slideTest()
+    {
+        boolean bPressed = false;
+        int outPos = 0;
+        int inPos = 0;
+        slide.setPower(-1);
+        while(!bPressed && opModeIsActive())
+        {
+            telemetry.addLine("click y when at desired out pos");
+            telemetry.addData("slide power: ",slide.getPower());
+            telemetry.update();
+            if(gamepad1.y) {
+                bPressed = true;
+            }
 
+        }
+        outPos = slide.getCurrentPosition();
+        slide.setPower(0);
+        bPressed = false;
+        sleep(1000);
+        slide.setPower(1);
+        while(!bPressed && opModeIsActive())
+        {
+            telemetry.addLine("click y when at desired in pos");
+            telemetry.addData("slide power: ",slide.getPower());
+            telemetry.update();
+            if(gamepad1.y) {
+                bPressed = true;
+            }
+
+        }
+        inPos = slide.getCurrentPosition();
+        slide.setPower(0);
+        bPressed = false;
+        sleep(1000);
+        while(!bPressed && opModeIsActive())
+        {
+            telemetry.addData("Slide out pos: ", outPos);
+            telemetry.addData("Slide in pos: ", inPos);
+            telemetry.addLine("click y to move on");
+            telemetry.update();
+            if(gamepad1.y) {
+                bPressed = true;
+            }
+
+        }
+    }
 
 }
