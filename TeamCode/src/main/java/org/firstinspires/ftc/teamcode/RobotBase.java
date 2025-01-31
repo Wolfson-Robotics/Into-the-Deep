@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -20,19 +21,20 @@ public abstract class RobotBase extends LinearOpMode {
     protected DcMotorEx lb_drive;
 
     protected DcMotorEx lift;
-//    protected DcMotorEx hang;
 
     protected Servo arm;
     protected Servo claw;
 
     // Second intake servos
-    protected Servo slideServo;
+    protected DcMotorEx slide;
+    protected Servo slideArm;
+    protected CRServo leftRoller;
+    protected CRServo rightRoller;
 
 
     protected OpenCvCamera camera;
     protected String webcamName = "Webcam 1";
 
-//    protected RevColorSensorV3 colorSensor;
     protected Rev2mDistanceSensor distanceSensor;
 
     protected double powerFactor = 1;
@@ -64,6 +66,12 @@ public abstract class RobotBase extends LinearOpMode {
     protected final int minLift = -5;
     protected final int maxLift = -4165;
 
+    // slide
+    protected final int slideRangeTolerance = 3;
+    // max slide is the furthest, min slide is the cloest
+    protected final int maxSlide = -45;
+    protected final int minSlide = 5;
+
     protected final double maxArm = 0.945;
     protected final double minArm = 0.6055;
 
@@ -87,7 +95,13 @@ public abstract class RobotBase extends LinearOpMode {
         arm = hardwareMap.get(Servo.class, "arm");
         claw = hardwareMap.get(Servo.class, "claw");
 
-        slideServo = hardwareMap.get(Servo.class, "thingy");
+        slide = hardwareMap.get(DcMotorEx.class, "slide");
+        slideArm = hardwareMap.get(Servo.class, "slidearm");
+
+        leftRoller = hardwareMap.get(CRServo.class, "leftroller");
+        rightRoller = hardwareMap.get(CRServo.class, "rightroller");
+//        leftRoller.setDirection(CRServo.Direction.REVERSE);
+//        rightRoller.setDirection(CRServo.Direction.REVERSE);
 
 //        claw.setDirection(Servo.Direction.REVERSE);
 //        claw.setPosition(-0.82);
@@ -97,7 +111,9 @@ public abstract class RobotBase extends LinearOpMode {
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        arm.setPosition(0.45);
+        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        arm.setPosition(this.minArm);
         //setBrakeMotors();
 
     }

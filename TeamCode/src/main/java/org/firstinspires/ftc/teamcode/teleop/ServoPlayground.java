@@ -25,7 +25,7 @@ public class ServoPlayground extends RobotBase {
 
         waitForStart();
 
-        final String[] servos = new String[] { "lift", "arm", "claw", "slideServo" };
+        final String[] servos = new String[] { "lift", "arm", "claw", "slide", "slideArm", "leftRoller", "rightRoller" };
         final char[] digitCycle = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.' };
 
         ArrayList<HashMap<String, String>> positionsToNavigateTo = new ArrayList<>();
@@ -65,6 +65,11 @@ public class ServoPlayground extends RobotBase {
                     persistentTelemetry.setLine("Current servo pos", "Current servo pos: " + currentPos);
                     persistentTelemetry.update();
 
+                } else {
+                    currServoIndex--;
+                    if (currServoIndex <= 0) currServoIndex = 0;
+                    persistentTelemetry.setLine("Current servo selected", "Current servo selected: " + servos[currServoIndex] + "\n");
+                    persistentTelemetry.update();
                 }
             }
 
@@ -149,7 +154,7 @@ public class ServoPlayground extends RobotBase {
             if (gamepad1.a && !buttonPressed) {
                 buttonPressed = true;
 
-                if (positionsToNavigateTo.size() == 0) {
+                if (positionsToNavigateTo.isEmpty()) {
                     persistentTelemetry.addLine("No target positions to navigate to");
                     persistentTelemetry.update();
                 } else {
@@ -157,23 +162,41 @@ public class ServoPlayground extends RobotBase {
                     HashMap<String, String> posToNavigateTo = positionsToNavigateTo.get(0);
                     String servoName = new ArrayList<>(posToNavigateTo.keySet()).get(0);
                     String rawServoPos = posToNavigateTo.get(servoName);
+                    double servoPos = Double.parseDouble(rawServoPos);
 
                     persistentTelemetry.addLine("Moving servo " + servoName + " to pos " + rawServoPos);
                     persistentTelemetry.update();
                     switch (servoName) {
                         case "lift":
-                            moveMotor(lift, Integer.parseInt(rawServoPos.split("\\.")[0]), 0.05, true);
+                            moveMotor(lift, Integer.parseInt(rawServoPos.split("\\.")[0]), 0.35, true);
                             break;
                         case "arm":
 //                            moveServo(arm, Double.parseDouble(rawServoPos), 20);
-                            arm.setPosition(Double.parseDouble(rawServoPos));
+                            arm.setPosition(servoPos);
                             break;
                         case "claw":
 //                            moveServo(claw, Double.parseDouble(rawServoPos), 20);
-                            claw.setPosition(Double.parseDouble(rawServoPos));
+                            claw.setPosition(servoPos);
                             break;
-                        case "slideServo":
-                            slideServo.setPosition(Double.parseDouble(rawServoPos));
+                        case "slide":
+                            slide.setPower(servoPos);
+                            sleep(3000);
+                            slide.setPower(0);
+                            break;
+                        case "slideArm":
+                            slideArm.setPosition(servoPos);
+                            break;
+                        case "leftRoller":
+//                            leftWheel.setPosition(servoPos);
+                            leftRoller.setPower(servoPos);
+                            sleep(3000);
+                            leftRoller.setPower(0);
+                            break;
+                        case "rightRoller":
+//                            rightWheel.setPosition(servoPos);
+                            rightRoller.setPower(servoPos);
+                            sleep(3000);
+                            rightRoller.setPower(0);
                             break;
                     }
                     persistentTelemetry.addLine("Done moving");
