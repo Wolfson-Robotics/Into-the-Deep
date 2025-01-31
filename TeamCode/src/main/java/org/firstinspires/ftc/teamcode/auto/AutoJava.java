@@ -31,13 +31,16 @@ public abstract class AutoJava extends RobotBase {
     protected PixelDetection pixelDetection;
     protected boolean blue = false;
 
+    // Distance sensor constants
     protected double lowestJunk = 330;
     protected double highestJunk = -1;
     protected final double defaultLowestJunk = 9.5;
     protected final double defaultHighestJunk = 13.75;
     protected final double noLowestJunk = lowestJunk;
     protected final double noHighestJunk = highestJunk;
-    protected final double maxDist = 300;
+    // side note: the distance sensor returns 322 when it sees nothing
+    protected final double maxDist = 20;
+    protected final double maxDistDeviance = 0.445;
 
 
     protected AutoJava(boolean blue) {
@@ -494,8 +497,8 @@ public abstract class AutoJava extends RobotBase {
                         () -> sleep(100),
                         () -> distancesWhile.add(distanceSensor.getDistance(DistanceUnit.INCH))
                 );
-                double avgDeviance = Math.abs(distancesWhile.stream().mapToDouble(Double::doubleValue).average().orElseThrow(() -> new IllegalArgumentException("a")) - distSeen);
-                if (avgDeviance < 0.445) {
+                double avgDeviance = Math.abs(distancesWhile.stream().mapToDouble(Double::doubleValue).average().orElseThrow(() -> new IllegalArgumentException("Did not weigh currently seen dist")) - distSeen);
+                if (avgDeviance < this.maxDistDeviance) {
                     pTelem.addLine("Confirmed object location with average " + avgDeviance);
                     pTelem.update();
                     break;

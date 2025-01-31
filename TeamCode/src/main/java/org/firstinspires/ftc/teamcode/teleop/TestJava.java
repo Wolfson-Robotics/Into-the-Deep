@@ -16,7 +16,6 @@ public class TestJava extends RobotBase {
             telemetry.addLine("Dpad down is wheel");
             telemetry.addLine("Dpad left is claw");
             telemetry.addLine("Dpad right is claw quick");
-            telemetry.addLine("Dpad up is slide servo");
             telemetry.update();
             if (gamepad1.dpad_down) {
                 wheelTest();
@@ -28,7 +27,7 @@ public class TestJava extends RobotBase {
                 clawTestQuick();
             }
             if (gamepad1.dpad_up) {
-                slideServoTest();
+                rollerTest();
             }
         }
     }
@@ -83,20 +82,38 @@ public class TestJava extends RobotBase {
             sleep(1500);
         }
     }
-    void slideServoTest() {
-        for (double i = 1; i >-1; i -= 0.01) {
-            slideServo.setPosition(i);
-            telemetry.addData("pos: ", i);
-            telemetry.update();
-            sleep(1500);
-        }
-    }
     void clawTestQuick() {
         for (double i = 1; i >= -1; i -= 0.01) {
             claw.setPosition(i);
             telemetry.addData("pos: ", i);
             telemetry.update();
         }
+    }
+    void rollerTest() {
+        telemetry.addLine("testing leftwheel pos power");
+        telemetry.addData("leftwheel dir", leftRoller.getDirection().name());
+        telemetry.update();
+        leftRoller.setPower(1);
+        sleep(2500);
+        leftRoller.setPower(0);
+        telemetry.addLine("testing leftwheel neg power");
+        telemetry.addData("leftwheel dir", leftRoller.getDirection().name());
+        telemetry.update();
+        leftRoller.setPower(-1);
+        sleep(2500);
+        leftRoller.setPower(0);
+        telemetry.addLine("testing rightwheel pos power");
+        telemetry.addData("leftwheel dir", rightRoller.getDirection().name());
+        telemetry.update();
+        rightRoller.setPower(1);
+        sleep(2500);
+        rightRoller.setPower(0);
+        telemetry.addLine("testing rightwheel neg power");
+        telemetry.addData("leftwheel dir", rightRoller.getDirection().name());
+        telemetry.update();
+        rightRoller.setPower(-1);
+        sleep(2500);
+        rightRoller.setPower(0);
     }
 
 

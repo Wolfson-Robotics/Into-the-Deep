@@ -21,6 +21,7 @@ public class AutoJavaExperimentalMovements extends AutoJava {
 
     private double lowestJunk = Double.POSITIVE_INFINITY;
     private double highestJunk = Double.NEGATIVE_INFINITY;
+    private final double maxDist = 20;
 
     public AutoJavaExperimentalMovements() {
         super(true);
@@ -336,7 +337,7 @@ public class AutoJavaExperimentalMovements extends AutoJava {
 
             if (gamepad1.left_trigger > 0.1) {
                 double currDist = distanceSensor.getDistance(DistanceUnit.INCH);
-                if (currDist < 300) {
+                if (currDist < maxDist) {
                     if (currDist < lowestJunk) {
                         lowestJunk = currDist;
                     } else if (currDist > highestJunk) {
@@ -450,7 +451,7 @@ public class AutoJavaExperimentalMovements extends AutoJava {
         boolean found = false;
         while (!found && opModeIsActive()) {
             distSeen = distanceSensor.getDistance(DistanceUnit.INCH);
-            if (distSeen < lowestJunk || (distSeen > highestJunk && distSeen < 300)) {
+            if (distSeen < lowestJunk || (distSeen > highestJunk && distSeen < maxDist)) {
                 removePower();
                 List<Double> distancesWhile = new ArrayList<>();
                 runTasksAsync(
