@@ -106,6 +106,7 @@ public class ServoPlayground extends RobotBase {
                     currentPos.setCharAt(currentPosIndex, digitCycle[digitCycleIndex]);
 
                     persistentTelemetry.addLine("Inputting servo pos");
+                    persistentTelemetry.addLine("Current servo pos: " + currentPos);
                     persistentTelemetry.update();
                 } else {
                     inputtingPos = false;

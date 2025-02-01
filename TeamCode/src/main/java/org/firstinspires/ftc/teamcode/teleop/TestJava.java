@@ -19,9 +19,13 @@ public class TestJava extends RobotBase {
             telemetry.addLine("Dpad right is claw quick");
             telemetry.addLine("a is arm test");
             telemetry.addLine("b is is slide test");
+            telemetry.addLine("x is experimental slide test");
             telemetry.update();
             if (gamepad1.a) {
                 armTest();
+            }
+            if (gamepad1.x) {
+                slideTestExperimental();
             }
             if (gamepad1.dpad_down) {
                 wheelTest();
@@ -134,6 +138,16 @@ public class TestJava extends RobotBase {
         rightRoller.setPower(0);
     }
 
+    void slideTestExperimental() {
+        telemetry.addLine("neg power");
+        telemetry.update();
+        slide.setPower(-1);
+        sleep(1500);
+        telemetry.addLine("pos power");
+        telemetry.update();
+        slide.setPower(1);
+        sleep(1500);
+    }
     void slideTest()
     {
         boolean bPressed = false;

@@ -4,6 +4,7 @@ import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.PersistentTelemetry;
@@ -54,7 +55,7 @@ public abstract class AutoJava extends RobotBase {
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 //        powerFactor = 0.6;
         powerFactor = 0.725;
-        arm.setPosition(0.6);
+        arm.setPosition(this.minArm);
         claw.setPosition(this.closedClaw);
     }
 
@@ -113,6 +114,11 @@ public abstract class AutoJava extends RobotBase {
 //        moveBotOld((in/12d) * 73.6770894730908, vertical, pivot, horizontal);
         moveBotOld(in*ticsPerInch, vertical, pivot, horizontal);
     }
+
+    protected double ticsToInches(double tics) {
+        return tics*ticsPerInch*intCon;
+    }
+
 
 
 
@@ -421,10 +427,13 @@ public abstract class AutoJava extends RobotBase {
                     }
                 }
             }
+            telemetry.addLine("Curr dist seen: " + distanceSensor.getDistance(DistanceUnit.INCH));
             telemetry.addLine("Current lowest junk: " + lowestJunk);
             telemetry.addLine("Current highest junk: " + highestJunk);
             telemetry.update();
         }
+        lowestJunk -= 0.5;
+        highestJunk += 0.5;
 
         telemetry.addLine("Waiting for start");
         telemetry.update();
@@ -435,17 +444,19 @@ public abstract class AutoJava extends RobotBase {
 
 
     protected void grabSample() {
-        moveServo(arm, 0.91);
+//        moveServo(arm, 0.91);
+        maxArm();
         sleep(250);
-        moveServo(claw, 0.46);
+        moveServo(claw, this.closedClaw);
         sleep(150);
     }
     protected void sampleInBasket() {
-        moveServo(arm, 0.76);
+//        moveServo(arm, 0.76);
+        moveServo(arm, 0.16);
         sleep(150);
-        moveServo(claw, 0.3);
+        moveServo(claw, this.openClaw);
         sleep(150);
-         moveServo(arm, 0.609);
+        restArm();
     }
     protected void restLift() {
         moveMotor(lift, 0, 1.5);
@@ -454,7 +465,11 @@ public abstract class AutoJava extends RobotBase {
         moveMotor(lift, -4220, 1.5);
     }
     protected void restArm() {
-        moveServo(arm, 0.6094444444444445);
+//        moveServo(arm, 0.6094444444444445);
+        moveServo(arm, this.minArm);
+    }
+    protected void maxArm() {
+        moveServo(arm, this.maxArm);
     }
     // stub methods for later
     protected void placeSpecimen() {
@@ -462,8 +477,8 @@ public abstract class AutoJava extends RobotBase {
     }
 
 
-
-    public void moveTillObjectSeen(boolean right) {
+    // returns true if sensed, false if not
+    protected boolean moveTillObjectSeen(boolean right, boolean timeout, double threshold) {
         if (lowestJunk == noLowestJunk) {
             lowestJunk = defaultLowestJunk;
             pTelem.addLine("Did not calibrate, going to default values");
@@ -481,25 +496,31 @@ public abstract class AutoJava extends RobotBase {
         pTelem.setData("distance", distSeen);
         pTelem.update();
 
-        double horizontal = (right) ? 0.45 : -0.45;
+        double horizontal = (right) ? 0.46 : -0.46;
         rf_drive.setPower(-horizontal);
         rb_drive.setPower(horizontal);
         lf_drive.setPower(horizontal);
         lb_drive.setPower(-horizontal);
 
         boolean found = false;
-        while (!found && opModeIsActive()) {
+        int beforeLf = lf_drive.getCurrentPosition();
+        ElapsedTime runtime = new ElapsedTime(); runtime.reset();
+        while (!found && opModeIsActive() && (timeout && runtime.seconds() < 4)) {
+            if (Math.abs(lf_drive.getCurrentPosition() - beforeLf) < threshold) {
+                continue;
+            }
             distSeen = distanceSensor.getDistance(DistanceUnit.INCH);
             if (distSeen < lowestJunk || (distSeen > highestJunk && distSeen < maxDist)) {
                 removePower();
                 List<Double> distancesWhile = new ArrayList<>();
                 runTasksAsync(
-                        () -> sleep(100),
+                        () -> sleep(300),
                         () -> distancesWhile.add(distanceSensor.getDistance(DistanceUnit.INCH))
                 );
                 double avgDeviance = Math.abs(distancesWhile.stream().mapToDouble(Double::doubleValue).average().orElseThrow(() -> new IllegalArgumentException("Did not weigh currently seen dist")) - distSeen);
                 if (avgDeviance < this.maxDistDeviance) {
-                    pTelem.addLine("Confirmed object location with average " + avgDeviance);
+                    pTelem.addLine("Confirmed object location with distance " + distSeen);
+                    pTelem.addLine("And average " + avgDeviance);
                     pTelem.update();
                     break;
                 }
@@ -509,10 +530,37 @@ public abstract class AutoJava extends RobotBase {
             lf_drive.setPower(horizontal);
             lb_drive.setPower(-horizontal);
         }
-        pTelem.addLine("Done");
+        pTelem.addLine(timeout && runtime.seconds() > 4 ? "Did not detect object" : "Done");
         pTelem.update();
         removePower();
         sleep(300);
+        return timeout && runtime.seconds() > 4;
+    }
+    protected boolean moveTillObjectSeen(boolean right, boolean timeout) {
+        return moveTillObjectSeen(right, timeout, 0);
+    }
+    protected boolean moveTillObjectSeen(boolean right) {
+        return moveTillObjectSeen(right, true, 0);
+    }
+
+    protected void goToSample() {
+        int oldLf = lf_drive.getCurrentPosition();
+        boolean seen = moveTillObjectSeen(false, true, 2.5);
+        sleep(100);
+        if (!seen) {
+            double distTraveled = ticsToInches(Math.abs(lf_drive.getCurrentPosition() - oldLf));
+            if (distTraveled < 3) {
+                moveBot(4 - distTraveled, 0, 0, -1);
+            } else {
+                moveBot(distTraveled - 3, 0, 0, 1);
+            }
+            moveBot(2.45, 0, 0, -1);
+//            moveBot(2, 0, 0, 1);
+//            moveBot(0.5, 0, 0, -1);
+            moveBot(1, -1, 0, 0);
+        }
+        sleep(100);
+        moveBot(seen ? (distanceSensor.getDistance(DistanceUnit.INCH) - 7.7) + 2 : 3.3, 1, 0, 0);
     }
     
     

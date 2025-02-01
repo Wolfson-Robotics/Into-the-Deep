@@ -72,8 +72,10 @@ public abstract class RobotBase extends LinearOpMode {
     protected final int maxSlide = -45;
     protected final int minSlide = 5;
 
-    protected final double maxArm = 0.945;
-    protected final double minArm = 0.6055;
+//    protected final double maxArm = 0.945;
+//    protected final double minArm = 0.6055;
+    protected final double maxArm = 0.316;
+    protected final double minArm = 0;
 
 
     protected final PersistentTelemetry pTelem = new PersistentTelemetry(telemetry);
@@ -91,7 +93,6 @@ public abstract class RobotBase extends LinearOpMode {
         lb_drive.setDirection(DcMotorSimple.Direction.REVERSE);
 
         lift = hardwareMap.get(DcMotorEx.class, "lift");
-//        hang = hardwareMap.get(DcMotorEx.class, "hang");
         arm = hardwareMap.get(Servo.class, "arm");
         claw = hardwareMap.get(Servo.class, "claw");
 
@@ -100,21 +101,14 @@ public abstract class RobotBase extends LinearOpMode {
 
         leftRoller = hardwareMap.get(CRServo.class, "leftroller");
         rightRoller = hardwareMap.get(CRServo.class, "rightroller");
-//        leftRoller.setDirection(CRServo.Direction.REVERSE);
-//        rightRoller.setDirection(CRServo.Direction.REVERSE);
 
-//        claw.setDirection(Servo.Direction.REVERSE);
-//        claw.setPosition(-0.82);
-//        claw.scaleRange(0.6, 0.9);
         claw.setPosition(this.closedClaw);
-       // lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
 
         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         arm.setPosition(this.minArm);
-        //setBrakeMotors();
 
     }
     public void setBrakeMotors() {

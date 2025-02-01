@@ -211,6 +211,28 @@ public class AutoInstructionReader {
                 break;
 
             }
+            case "moveTillObjectSeen": {
+                if (rawOperationArgs.size() != 1 && rawOperationArgs.size() != 2 && rawOperationArgs.size() != 3) {
+                    throw new IOException("Incorrect number of parameters at " + operationName + " call at line " + this.getLineNumber());
+                }
+                if (!isBoolean(rawOperationArgs.get(0))) {
+                    throw new IOException("Right boolean " + rawOperationArgs.get(1) + " is not a valid boolean for " + operationName + " call at line " + this.getLineNumber());
+                }
+                if (rawOperationArgs.size() > 1 && !isBoolean(rawOperationArgs.get(1))) {
+                    throw new IOException("Timeout boolean " + rawOperationArgs.get(1) + " is not a valid boolean for " + operationName + " call at line " + this.getLineNumber());
+                }
+                if (rawOperationArgs.size() > 2 && !isDouble(rawOperationArgs.get(2))) {
+                    throw new IOException("Threshold " + rawOperationArgs.get(2) + " is not a valid doube for " + operationName + " call at line " + this.getLineNumber());
+                }
+                operationArgs.add(rawOperationArgs.get(0));
+                if (rawOperationArgs.size() > 1) {
+                    operationArgs.add(rawOperationArgs.get(1));
+                }
+                if (rawOperationArgs.size() > 2) {
+                    operationArgs.add(rawOperationArgs.get(2));
+                }
+                break;
+            }
             case "powerFactor": {
 
                 if (rawOperationArgs.size() != 1) {
@@ -246,6 +268,7 @@ public class AutoInstructionReader {
             case "restLift":
             case "topBasketLift":
             case "restArm":
+            case "goToSample":
                 // basic auto methods like restArm, trussArm, and tapePlace go here with these other cases
                 break;
             default:
