@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -63,7 +64,7 @@ public class AutoInstructionCodeSerializer {
 
     public static String serialize(BufferedReader codeInput) throws IOException {
 
-        StringBuilder builtInstructions = new StringBuilder();
+        StringJoiner builtInstructions = new StringJoiner("\n");
 
         String rawLine;
         boolean storeAsync = false, creatingLinearRunnable = false;
@@ -77,21 +78,21 @@ public class AutoInstructionCodeSerializer {
             // Checks for special operations
             if (rawLine.contains(singleCommentMarker)) {
 //                rawLine = singleCommentMarker;
-                builtInstructions.append(filteredLine);
+                builtInstructions.add(filteredLine);
                 continue;
             }
             if (filteredLine.contains("() -> {")) {
-                builtInstructions.append(storeAsync ? "\t" : "").append(linearRunnableMarker);
+                builtInstructions.add(new StringBuilder().append(storeAsync ? "\t" : "").append(linearRunnableMarker));
                 creatingLinearRunnable = true;
                 continue;
             }
             if (filteredLine.equals("}") && creatingLinearRunnable) {
-                builtInstructions.append(storeAsync ? "\t" : "").append(endLinearRunnableMarker);
+                builtInstructions.add(new StringBuilder().append(storeAsync ? "\t" : "").append(endLinearRunnableMarker));
                 creatingLinearRunnable = false;
                 continue;
             }
             if (filteredLine.equals(");") && storeAsync) {
-                builtInstructions.append(endThreadingMarker);
+                builtInstructions.add(endThreadingMarker);
                 storeAsync = false;
                 continue;
             }
@@ -147,7 +148,7 @@ public class AutoInstructionCodeSerializer {
                     currBuiltInstruction.add(filteredLine);
                     break;
                 case multiThreadingMarker:
-                    builtInstructions.append(multiThreadingMarker);
+                    builtInstructions.add(multiThreadingMarker);
                     storeAsync = true;
                     continue;
                 default:
@@ -161,13 +162,13 @@ public class AutoInstructionCodeSerializer {
                 currBuiltInstruction.add(1, operationCall[0]);
             }
 
-            builtInstructions.append(storeAsync ? "\t" : "").append(creatingLinearRunnable ? "\t" : "").append(joinArgsText(currBuiltInstruction).replaceAll(semicolonRegex, ""));
+            builtInstructions.add(new StringBuilder().append(storeAsync ? "\t" : "").append(creatingLinearRunnable ? "\t" : "").append(joinArgsText(currBuiltInstruction).replaceAll(semicolonRegex, "")));
 
 
         }
         codeInput.close();
 
-        return String.join(builtInstructions, "\n");
+        return builtInstructions.toString();
 
     }
 

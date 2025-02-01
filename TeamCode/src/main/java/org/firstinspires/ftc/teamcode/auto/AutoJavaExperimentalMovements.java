@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.auto;
 
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -10,7 +11,7 @@ import org.firstinspires.ftc.teamcode.PersistentTelemetry;
 import java.util.ArrayList;
 import java.util.List;
 
-@TeleOp(name = "AutoJavaExperimentalMovements")
+@Autonomous(name = "AutoJavaExperimentalMovements")
 public class AutoJavaExperimentalMovements extends AutoJava {
 
     private final double powerFactor = 0.4;
@@ -305,14 +306,16 @@ public class AutoJavaExperimentalMovements extends AutoJava {
             }
             if (gamepad1.dpad_right) {
 //                movetillyellow(false);
-                moveTillObjectSeen(true);
+                moveTillObjectSeen(true, false);
+                sleep(5000);
             }
             if (gamepad1.dpad_down) {
                 trial3();
             }
             if (gamepad1.dpad_left) {
 //                movetillyellow(true);
-                moveTillObjectSeen(false);
+                moveTillObjectSeen(false, false);
+                sleep(5000);
             }
             if (gamepad1.y) {
                 trial5();
@@ -419,7 +422,7 @@ public class AutoJavaExperimentalMovements extends AutoJava {
 
     }*/
 
-
+/*
 
     public void moveTillObjectSeen(boolean left) {
 //        double lowestJunk = 6d, highestJunk = 9.6d;
@@ -476,7 +479,7 @@ public class AutoJavaExperimentalMovements extends AutoJava {
         claw.setPosition(openClaw);
         sleep(400);
         grabSample();
-    }
+    }*/
 
 
 

@@ -206,7 +206,18 @@ public class AutoInstructionReaderJava extends AutoJava {
                                 break;
                         }
                         break;
-
+                    case "moveTillObjectSeen":
+                        switch (operationArgs.size()) {
+                            case 1:
+                                fn = () -> moveTillObjectSeen(Boolean.parseBoolean(operationArgs.get(0)));
+                                break;
+                            case 2:
+                                fn = () -> moveTillObjectSeen(Boolean.parseBoolean(operationArgs.get(0)), Boolean.parseBoolean(operationArgs.get(1)));
+                                break;
+                            case 3:
+                                fn = () -> moveTillObjectSeen(Boolean.parseBoolean(operationArgs.get(0)), Boolean.parseBoolean(operationArgs.get(1)), Double.parseDouble(operationArgs.get(2)));
+                        }
+                        break;
                     case "powerFactor":
                         telemetry.addLine("CHANGING POWER FACTOR TO " + operationArgs.get(0));
                         telemetry.update();
@@ -233,6 +244,9 @@ public class AutoInstructionReaderJava extends AutoJava {
                         break;
                     case "restArm":
                         fn = () -> restArm();
+                        break;
+                    case "goToSample":
+                        fn = () -> goToSample();
                         break;
 
                     default:

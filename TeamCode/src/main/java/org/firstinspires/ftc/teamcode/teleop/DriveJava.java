@@ -154,11 +154,11 @@ public class DriveJava extends RobotBase {
                         } else if (currSlidePos < -7 && currSlidePos > -15) {
                             slidePowerCoef = 0.7;
                         } else if (currSlidePos < -15 && currSlidePos > -29) {
-                            slidePowerCoef = 0.5;
+                            slidePowerCoef = 0.26;
                         } else if (currSlidePos < -29 && currSlidePos > -38) {
-                            slidePowerCoef = 0.33;
+                            slidePowerCoef = 0.13;
                         } else if (currSlidePos < -38 && currSlidePos > this.maxSlide) {
-                            slidePowerCoef = 0.22;
+                            slidePowerCoef = 0.05;
                         }
 
                         if (gamepad1.dpad_up) {
@@ -218,7 +218,8 @@ public class DriveJava extends RobotBase {
             }
 //            if (gamepad2.dpad_right) {
             if (gamepad2.b) {
-                currentArmPosition = 0.78;
+//                currentArmPosition = 0.78;
+                currentArmPosition = 0.18;
             }
 //            if (gamepad2.dpad_up) {
             if (gamepad2.y) {
@@ -254,7 +255,20 @@ public class DriveJava extends RobotBase {
 
 
 
+
+
+            // grab claw
+            if (gamepad2.left_trigger > 0.1) {
+                claw.setPosition(this.closedClaw);
+            }
+            // open claw
+            if (gamepad2.right_trigger > 0.1) {
+                claw.setPosition(this.openClaw);
+            }
+
             speedchange();
+            moveBot(-gamepad1.left_stick_y, (gamepad1.right_stick_x), gamepad1.left_stick_x);
+           // hang.setPower(gamepad1.left_trigger - gamepad1.right_trigger);
             telemetry.addData("lift power sent: ", gamepad2.right_stick_y);
             telemetry.addData("lift pos sent: ", cachedLiftPos);
             telemetry.addData("lift pos actual: ", lift.getCurrentPosition());
@@ -288,19 +302,6 @@ public class DriveJava extends RobotBase {
             telemetry.addData("gamepad2 a: ", gamepad2.a);
             telemetry.addData("gamepad2 b: ", gamepad2.b);
             telemetry.addData("gamepad2 y: ", gamepad2.y);
-
-            // grab claw
-            if (gamepad2.left_trigger > 0.1) {
-                claw.setPosition(this.closedClaw);
-            }
-            // open claw
-            if (gamepad2.right_trigger > 0.1) {
-                claw.setPosition(this.openClaw);
-            }
-
-
-            moveBot(-gamepad1.left_stick_y, (gamepad1.right_stick_x), gamepad1.left_stick_x);
-           // hang.setPower(gamepad1.left_trigger - gamepad1.right_trigger);
             telemetry.update();
         }
     }
