@@ -13,6 +13,14 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
 public abstract class RobotBase extends LinearOpMode {
 
     protected DcMotorEx rf_drive;
@@ -26,7 +34,8 @@ public abstract class RobotBase extends LinearOpMode {
     protected Servo claw;
 
     // Second intake servos
-    protected DcMotorEx slide;
+    protected DcMotorEx slide1;
+    protected DcMotorEx slide2;
     protected Servo slideArm;
     protected CRServo leftRoller;
     protected CRServo rightRoller;
@@ -48,10 +57,6 @@ public abstract class RobotBase extends LinearOpMode {
     // constant is 230/90 (since regular turnBot(230) is 90 degrees)
     protected final double degConv = 2.5555555555555555555555555555556;
 
-//    protected final double closedClawPos = -1;
-//    protected final double openClawPos = 1;
-//    protected final double closedClawPos = 0.26;
-//    protected final double openClawPos = -0.1;
     protected final double closedClaw = 0.46;
     protected final double openClaw = 0.30;
 
@@ -67,15 +72,21 @@ public abstract class RobotBase extends LinearOpMode {
     protected final int maxLift = -4165;
 
     // slide
-    protected final int slideRangeTolerance = 3;
+    protected final int slideRangeTolerance = 7;
     // max slide is the furthest, min slide is the cloest
-    protected final int maxSlide = -45;
-    protected final int minSlide = 5;
+//    protected final int maxSlide = -1826;
+//    protected final int minSlide = -1772;
+    protected final int maxSlide = -36;
+    protected final int minSlide = 0;
+    protected final double minSlideArm = 1;
+    protected final double maxSlideArm = -0.6;
 
-//    protected final double maxArm = 0.945;
-//    protected final double minArm = 0.6055;
-    protected final double maxArm = 0.316;
-    protected final double minArm = 0;
+//    protected final double maxArm = 0.316;
+//    protected final double minArm = 0;
+//    protected final double maxArm = 1;
+//    protected final double minArm = 0.7;
+    protected final double minArm = 0.75;
+    protected final double maxArm = 1;
 
 
     protected final PersistentTelemetry pTelem = new PersistentTelemetry(telemetry);
@@ -96,8 +107,10 @@ public abstract class RobotBase extends LinearOpMode {
         arm = hardwareMap.get(Servo.class, "arm");
         claw = hardwareMap.get(Servo.class, "claw");
 
-        slide = hardwareMap.get(DcMotorEx.class, "slide");
+        slide1 = hardwareMap.get(DcMotorEx.class, "slide");
+        slide2 = hardwareMap.get(DcMotorEx.class, "slide2");
         slideArm = hardwareMap.get(Servo.class, "slidearm");
+        slideArm.setDirection(Servo.Direction.REVERSE);
 
         leftRoller = hardwareMap.get(CRServo.class, "leftroller");
         rightRoller = hardwareMap.get(CRServo.class, "rightroller");
@@ -106,7 +119,7 @@ public abstract class RobotBase extends LinearOpMode {
         lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slide1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         arm.setPosition(this.minArm);
 
@@ -156,6 +169,21 @@ public abstract class RobotBase extends LinearOpMode {
 
             // Sleep for a short duration (adjust as needed)
             sleep(speed); // Sleep for 100 milliseconds (adjust for desired speed)
+        }
+
+    }
+
+    protected void moveServoSpeed(Servo servo, double targetPosition, long speed) {
+        if (Math.abs(servo.getPosition() - targetPosition) > 0.01) {
+            // Move the servo towards the target position slowly
+            if (servo.getPosition() < targetPosition) {
+                servo.setPosition(servo.getPosition() + speed);
+            } else {
+                servo.setPosition(servo.getPosition() - speed);
+            }
+
+            // Sleep for a short duration (adjust as needed)
+            sleep(100); // Sleep for 100 milliseconds (adjust for desired speed)
         }
 
     }
@@ -222,6 +250,21 @@ public abstract class RobotBase extends LinearOpMode {
         double distUnit = (robotLength) / (Math.cos(45));
         degrees = Math.round((float)(((((tics /intCon)*90)/distUnit)/1.75)));
         return degrees;
+    }
+
+
+
+    protected void runTasksAsync(List<Runnable> fns) {
+        ExecutorService executorService = Executors.newFixedThreadPool(fns.size()); // Thread pool
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        fns.forEach(fn -> futures.add(CompletableFuture.runAsync(fn, executorService)));
+
+        CompletableFuture<Void> allThreads = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        allThreads.join();
+        executorService.shutdown();
+    }
+    protected void runTasksAsync(Runnable... fns) {
+        runTasksAsync(Arrays.stream(fns).collect(Collectors.toList()));
     }
 
 

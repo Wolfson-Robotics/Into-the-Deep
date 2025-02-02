@@ -24,6 +24,13 @@ public class CustomTelemetryLogger {
             e.printStackTrace();
         }
     }
+    public synchronized void logDataRaw(String data) {
+        try {
+            fileWriter.write(data + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public synchronized void close() {
         try {

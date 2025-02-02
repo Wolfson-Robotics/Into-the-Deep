@@ -20,6 +20,7 @@ public class TestJava extends RobotBase {
             telemetry.addLine("a is arm test");
             telemetry.addLine("b is is slide test");
             telemetry.addLine("x is experimental slide test");
+            telemetry.addLine("y is slide arm tset");
             telemetry.update();
             if (gamepad1.a) {
                 armTest();
@@ -38,6 +39,9 @@ public class TestJava extends RobotBase {
             }
             if (gamepad1.dpad_up) {
                 rollerTest();
+            }
+            if (gamepad1.y) {
+                slideArmTest();
             }
             if(gamepad1.b)
             {
@@ -104,7 +108,8 @@ public class TestJava extends RobotBase {
         }
     }
     void armTest() {
-        for (double i = 0.3; i >= -1; i -= 0.05) {
+//        for (double i = 0.3; i >= -1; i -= 0.05) {
+        for (double i = 1; i >= -1; i -= 0.05) {
             arm.setPosition(i);
             telemetry.addData("pos: ", i);
             telemetry.update();
@@ -141,46 +146,68 @@ public class TestJava extends RobotBase {
     void slideTestExperimental() {
         telemetry.addLine("neg power");
         telemetry.update();
-        slide.setPower(-1);
+        slide1.setPower(-1);
         sleep(1500);
         telemetry.addLine("pos power");
         telemetry.update();
-        slide.setPower(1);
+        slide1.setPower(1);
         sleep(1500);
+    }
+    void slideArmTest() {
+        boolean yPressed = false;
+        sleep(750);
+        while (!yPressed && opModeIsActive()) {
+            slideArm.setPosition(gamepad1.right_stick_y);
+//            moveServoSpeed(slideArm, gamepad1.right_stick_y, (long) 0.1);
+//            sleep(500);
+            telemetry.addData("slide arm pos", slideArm.getPosition());
+            telemetry.addData("right stick y", gamepad1.right_stick_y);
+            telemetry.update();
+            if (gamepad1.y) {
+                yPressed = true;
+            }
+        }
+        sleep(1000);
     }
     void slideTest()
     {
         boolean bPressed = false;
         int outPos = 0;
         int inPos = 0;
-        slide.setPower(-1);
+        slide1.setPower(-0.5);
+        slide2.setPower(-0.5);
         while(!bPressed && opModeIsActive())
         {
             telemetry.addLine("click y when at desired out pos");
-            telemetry.addData("slide power: ",slide.getPower());
+            telemetry.addData("slide power 1: ", slide1.getPower());
+            telemetry.addData("slide power 2: ", slide1.getPower());
             telemetry.update();
             if(gamepad1.y) {
                 bPressed = true;
             }
 
         }
-        outPos = slide.getCurrentPosition();
-        slide.setPower(0);
+        outPos = slide1.getCurrentPosition();
+        slide1.setPower(0);
+        slide2.setPower(0);
         bPressed = false;
         sleep(1000);
-        slide.setPower(1);
+        slide1.setPower(0.5);
+        slide2.setPower(0.5);
         while(!bPressed && opModeIsActive())
         {
             telemetry.addLine("click y when at desired in pos");
-            telemetry.addData("slide power: ",slide.getPower());
+            telemetry.addData("slide power 1: ", slide1.getPower());
+            telemetry.addData("slide power 2: ", slide2.getPower());
             telemetry.update();
             if(gamepad1.y) {
                 bPressed = true;
             }
 
         }
-        inPos = slide.getCurrentPosition();
-        slide.setPower(0);
+        inPos = slide1.getCurrentPosition();
+        slide1.setPower(0);
+        slide2.setPower(0);
         bPressed = false;
         sleep(1000);
         while(!bPressed && opModeIsActive())

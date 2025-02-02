@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.RobotBase;
 
@@ -18,7 +19,9 @@ public class DriveJava extends RobotBase {
         telemetry.update();
 
         waitForStart();
-        double currentArmPosition = 0.65;
+//        double currentArmPosition = 0.65;
+        double currentArmPosition = arm.getPosition();
+        if (currentArmPosition < this.minArm || currentArmPosition > this.maxArm) currentArmPosition = this.minArm;
         int cachedLiftPos = 0;
         boolean startedMoving = false;
         boolean alreadySwitchedMode = false;
@@ -102,38 +105,40 @@ public class DriveJava extends RobotBase {
 
 
 
-            if (gamepad1.dpad_up || gamepad1.dpad_down) {
-                if (slide.getCurrentPosition() <= this.maxSlide && gamepad2.dpad_up && startedMovingSlide) {
+            if (gamepad2.dpad_right || gamepad2.dpad_left) {
+                if (slide1.getCurrentPosition() <= this.maxSlide && gamepad2.dpad_right && startedMovingSlide) {
 
                     telemetry.addLine("controlling max slide");
                     alreadySwitchedModeSlide = false;
                     cachedSlidePos = this.maxSlide;
                     // prevent jarring motor movement when user tries to go down when achieving lift
                     if (!maxSlideAchieved) {
-                        driveMotor(slide, this.maxSlide, 0.22);
+                        driveMotor(slide1, this.maxSlide, 0.05);
+                        slide2.setPower(0.05);
                         maxSlideAchieved = true;
                     }
 
-                } else if (slide.getCurrentPosition() >= this.minSlide && gamepad2.dpad_down && startedMovingSlide) {
+                } else if (slide1.getCurrentPosition() >= this.minSlide && gamepad2.dpad_left && startedMovingSlide) {
 
                     telemetry.addLine("controlling min slide");
                     alreadySwitchedModeSlide = false;
                     cachedSlidePos = this.minSlide;
                     // prevent jarring motor movement when user tries to go up when achieving max
                     if (!minSlideAchieved) {
-                        driveMotor(slide, this.minSlide, 1);
+                        driveMotor(slide1, this.minSlide, 1);
+                        slide2.setPower(1);
                         minSlideAchieved = true;
                     }
 
                 } else {
 
                     boolean dont = false;
-                    if (gamepad2.dpad_up && startedMovingSlide) {
-                        if (Math.abs(slide.getCurrentPosition() - maxSlide) <= this.slideRangeTolerance && maxSlideAchieved) {
+                    if (gamepad2.dpad_right && startedMovingSlide) {
+                        if (Math.abs(slide1.getCurrentPosition() - maxSlide) <= this.slideRangeTolerance && maxSlideAchieved) {
                             dont = true;
                         }
-                    } else if (gamepad2.dpad_down && startedMovingSlide) {
-                        if (Math.abs(slide.getCurrentPosition() - minSlide) <= this.slideRangeTolerance && minSlideAchieved) {
+                    } else if (gamepad2.dpad_left && startedMovingSlide) {
+                        if (Math.abs(slide1.getCurrentPosition() - minSlide) <= this.slideRangeTolerance && minSlideAchieved) {
                             dont = true;
                         }
                     }
@@ -144,51 +149,109 @@ public class DriveJava extends RobotBase {
                         maxSlideAchieved = false;
                         stasisAchievedSlide = false;
                         if (!alreadySwitchedModeSlide) {
-                            slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                            slide1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                             alreadySwitchedModeSlide = true;
                         }
-                        int currSlidePos = slide.getCurrentPosition();
+                        int currSlidePos = slide1.getCurrentPosition();
                         double slidePowerCoef = 0.7;
-                        if (currSlidePos < this.minSlide && currSlidePos > -7) {
+                        if (currSlidePos <= this.minSlide && currSlidePos > -1800) {
                             slidePowerCoef = 1;
-                        } else if (currSlidePos < -7 && currSlidePos > -15) {
+//                        } else if (currSlidePos < -1790 && currSlidePos > -1800) {
+//                            slidePowerCoef = 0.8;
+                        } else if (currSlidePos < -1800 && currSlidePos > -1810) {
                             slidePowerCoef = 0.7;
-                        } else if (currSlidePos < -15 && currSlidePos > -29) {
-                            slidePowerCoef = 0.26;
-                        } else if (currSlidePos < -29 && currSlidePos > -38) {
-                            slidePowerCoef = 0.13;
-                        } else if (currSlidePos < -38 && currSlidePos > this.maxSlide) {
-                            slidePowerCoef = 0.05;
+                        } else if (currSlidePos < -1810 && currSlidePos > -1820) {
+                            slidePowerCoef = 0.6;
+                        } else if (currSlidePos < -1820 && currSlidePos >= this.maxSlide) {
+                            slidePowerCoef = 0.4;
                         }
+                        slidePowerCoef = 1;
 
-                        if (gamepad1.dpad_up) {
-                            slide.setPower(-1 * slidePowerCoef);
-                        } else if (gamepad1.dpad_down) {
-                            slide.setPower(slidePowerCoef);
+                        if (gamepad2.dpad_right) {
+                            slide1.setPower(-1 * slidePowerCoef);
+                            slide2.setPower(-1 * slidePowerCoef);
+                        } else if (gamepad2.dpad_left) {
+                            slidePowerCoef = 1;
+                            slide1.setPower(slidePowerCoef);
+                            slide2.setPower(slidePowerCoef);
                         } else if (Math.abs(gamepad1.left_stick_x) > 0
                                 || Math.abs(gamepad1.left_stick_y) > 0
                                 || Math.abs(gamepad1.left_stick_x) > 0) {
-//                            slide.setPower(1);
-                            driveMotor(slide, minSlide, 1);
+                            driveMotor(slide1, minSlide, 1);
+                            slide2.setPower(1);
                         } else {
-                            slide.setPower(0);
+                            slide1.setPower(0);
+                            slide2.setPower(0);
                         }
-                        cachedSlidePos = slide.getCurrentPosition();
+                        telemetry.addData("slide power coefficient", slidePowerCoef);
+                        cachedSlidePos = slide1.getCurrentPosition();
                     }
 
                 }
             } else {
+
+
+                if (slide1.getCurrentPosition() <= this.maxSlide) {
+
+                    telemetry.addLine("controlling max slide in else block");
+                    cachedSlidePos = this.maxSlide;
+                    // prevent jarring motor movement when user tries to go down when achieving lift
+                    if (!maxSlideAchieved) {
+                        driveMotor(slide1, this.maxSlide, 0.05);
+                        slide2.setPower(0.05);
+                        maxSlideAchieved = true;
+                    }
+
+                } else if (slide1.getCurrentPosition() >= this.minSlide) {
+
+                    telemetry.addLine("controlling min slide in else block");
+                    cachedSlidePos = this.minSlide;
+                    // prevent jarring motor movement when user tries to go up when achieving max
+                    if (!minSlideAchieved) {
+                        driveMotor(slide1, this.minSlide, 1);
+                        slide2.setPower(1);
+                        minSlideAchieved = true;
+                    }
+
+                }
+
                 if (startedMovingSlide) {
+
+                    if (slide1.getCurrentPosition() <= this.maxSlide) {
+
+                        telemetry.addLine("controlling max slide in else block");
+                        cachedSlidePos = this.maxSlide;
+                        // prevent jarring motor movement when user tries to go down when achieving lift
+                        if (!maxSlideAchieved) {
+                            driveMotor(slide1, this.maxSlide, 0.05);
+                            slide2.setPower(0.05);
+                            maxSlideAchieved = true;
+                        }
+
+                    } else if (slide1.getCurrentPosition() >= this.minSlide) {
+
+                        telemetry.addLine("controlling min slide in else block");
+                        cachedSlidePos = this.minSlide;
+                        // prevent jarring motor movement when user tries to go up when achieving max
+                        if (!minSlideAchieved) {
+                            driveMotor(slide1, this.minSlide, 1);
+                            slide2.setPower(1);
+                            minSlideAchieved = true;
+                        }
+
+                    }
+
                     telemetry.addLine("Not receiving input right now maintaining slide position");
                     alreadySwitchedModeSlide = false;
                     if (!stasisAchievedSlide) {
                         if (Math.abs(gamepad1.left_stick_x) > 0
                                 || Math.abs(gamepad1.left_stick_y) > 0
                                 || Math.abs(gamepad1.left_stick_x) > 0) {
-                            driveMotor(slide, minSlide, 1);
-//                            slide.setPower(1);
+                            driveMotor(slide1, minSlide, 1);
+                            slide2.setPower(1);
                         } else {
-                            driveMotor(slide, cachedSlidePos, this.liftStationaryPower);
+                            slide2.setPower(this.liftStationaryPower);
+                            driveMotor(slide1, cachedSlidePos, this.liftStationaryPower);
                             stasisAchievedSlide = true;
                         }
                     }
@@ -197,14 +260,12 @@ public class DriveJava extends RobotBase {
             if (Math.abs(gamepad1.left_stick_x) > 0
                     || Math.abs(gamepad1.left_stick_y) > 0
                     || Math.abs(gamepad1.left_stick_x) > 0) {
-                driveMotor(slide, minSlide, 1);
-//                            slide.setPower(1);
+                driveMotor(slide1, minSlide, 1);
+                slide2.setPower(1);
             }
 
-//            if (gamepad2.a) {
-//                currentArmPosition = 0.69;
-//            }
-            if (gamepad2.left_stick_y < 0 && !gamepad2.a) {
+
+            if (gamepad2.left_stick_y < 0 && !gamepad2.a && !gamepad2.b && !gamepad2.y) {
                 currentArmPosition += this.manualArmSpeed; // increase by a small step
                 if (currentArmPosition >= this.maxArm) currentArmPosition = this.maxArm;
             } else if (gamepad2.left_stick_y > 0 && !gamepad2.a) {
@@ -212,28 +273,33 @@ public class DriveJava extends RobotBase {
                 if (currentArmPosition <= this.minArm) currentArmPosition = this.minArm;
             }
 
-//            if (gamepad2.dpad_down) {
-            if (gamepad2.a) {
+            if (gamepad2.dpad_up) {
                 currentArmPosition = this.maxArm;
             }
-//            if (gamepad2.dpad_right) {
+            if (gamepad2.dpad_down) {
+                currentArmPosition = this.minArm;
+            }/*
             if (gamepad2.b) {
-//                currentArmPosition = 0.78;
                 currentArmPosition = 0.18;
-            }
+            }*/
 //            if (gamepad2.dpad_up) {
+            /*
             if (gamepad2.y) {
                 currentArmPosition = this.minArm;
-            }
+            }*/
 
             // note: for arm movements, automatically fix the slide arm
             // bring slide arm back
-            if (gamepad2.dpad_up) {
-                slideArm.setPosition(0.7);
+            if (gamepad2.a) {
+                slideArm.setPosition(this.minSlideArm);
+            }
+            // slide arm hover
+            if (gamepad2.x) {
+                slideArm.setPosition(0.5);
             }
             // put slide arm down
-            if (gamepad2.dpad_down) {
-                slideArm.setPosition(0.3);
+            if (gamepad2.y) {
+                slideArm.setPosition(this.maxSlideArm);
             }
             // intake color sample
             if (gamepad2.right_bumper) {
@@ -274,8 +340,8 @@ public class DriveJava extends RobotBase {
             telemetry.addData("lift pos actual: ", lift.getCurrentPosition());
             telemetry.addData("lift power actual: ", lift.getPower());
             telemetry.addData("slide pos sent: ", cachedSlidePos);
-            telemetry.addData("slide pos actual: ", slide.getCurrentPosition());
-            telemetry.addData("slide power: ", slide.getPower());
+            telemetry.addData("slide pos actual: ", slide1.getCurrentPosition());
+            telemetry.addData("slide power: ", slide1.getPower());
             telemetry.addData("arm sent pos: ", currentArmPosition);
             telemetry.addData("arm pos actual: ", arm.getPosition());
             telemetry.addData("claw pos: ", claw.getPosition());
