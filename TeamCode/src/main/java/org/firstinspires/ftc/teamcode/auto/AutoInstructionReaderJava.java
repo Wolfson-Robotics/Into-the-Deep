@@ -32,8 +32,10 @@ public class AutoInstructionReaderJava extends AutoJava {
     @Override
     public void runOpMode() {
 
-        initMotors();
+        this.commonAutoInit();
         telemetry.addLine("Waiting for start");
+        telemetry.addData("lowest junk", lowestJunk);
+        telemetry.addData("highest junk", highestJunk);
         telemetry.update();
         waitForStart();
 

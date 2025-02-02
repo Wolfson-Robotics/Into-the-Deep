@@ -11,6 +11,10 @@ import org.firstinspires.ftc.teamcode.PersistentTelemetry;
 import org.firstinspires.ftc.teamcode.RobotBase;
 import org.firstinspires.ftc.teamcode.old.PixelDetection;
 
+import java.io.File;
+import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +44,7 @@ public abstract class AutoJava extends RobotBase {
     protected final double noLowestJunk = lowestJunk;
     protected final double noHighestJunk = highestJunk;
     // side note: the distance sensor returns 322 when it sees nothing
-    protected final double maxDist = 20;
+    protected final double maxDist = 10;
     protected final double maxDistDeviance = 0.445;
 
 
@@ -386,19 +390,6 @@ public abstract class AutoJava extends RobotBase {
     }
 
 
-    protected void runTasksAsync(List<Runnable> fns) {
-        ExecutorService executorService = Executors.newFixedThreadPool(fns.size()); // Thread pool
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-        fns.forEach(fn -> futures.add(CompletableFuture.runAsync(fn, executorService)));
-
-        CompletableFuture<Void> allThreads = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        allThreads.join();
-        executorService.shutdown();
-    }
-    protected void runTasksAsync(Runnable... fns) {
-        runTasksAsync(Arrays.stream(fns).collect(Collectors.toList()));
-    }
-
 
 
     protected void commonAutoInit() {
@@ -414,18 +405,18 @@ public abstract class AutoJava extends RobotBase {
             distanceSensor.initialize();
         }
 //        this.initCamera();
-
+/*
         while (!isStarted()) {
             if ((gamepad1.right_trigger > 0.1 || gamepad2.right_trigger > 0.1)  && distanceSensor != null) {
                 telemetry.addLine("Calibrating");
                 double currDist = distanceSensor.getDistance(DistanceUnit.INCH);
-                if (currDist < maxDist) {
+//                if (currDist < maxDist) {
                     if (currDist < lowestJunk) {
                         lowestJunk = currDist;
                     } else if (currDist > highestJunk) {
                         highestJunk = currDist;
                     }
-                }
+//                }
             }
             telemetry.addLine("Curr dist seen: " + distanceSensor.getDistance(DistanceUnit.INCH));
             telemetry.addLine("Current lowest junk: " + lowestJunk);
@@ -433,11 +424,47 @@ public abstract class AutoJava extends RobotBase {
             telemetry.update();
         }
         lowestJunk -= 0.5;
-        highestJunk += 0.5;
+        highestJunk += 0.5;*/
+        try {
+            StringBuilder content = new StringBuilder();
+            try (FileReader reader = new FileReader("/sdcard/Logs/lower_calibrate.txt")) {
+                int ch;
+                while ((ch = reader.read()) != -1) {
+                    content.append((char) ch);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            this.lowestJunk = Double.parseDouble(content.toString().trim());
+            telemetry.addData("Read lowest calibrate", this.lowestJunk);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            StringBuilder content = new StringBuilder();
+            try (FileReader reader = new FileReader("/sdcard/Logs/higher_calibrate.txt")) {
+                int ch;
+                while ((ch = reader.read()) != -1) {
+                    content.append((char) ch);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            this.highestJunk = Double.parseDouble(content.toString().trim());
+            telemetry.addData("Read highest calibrate", this.highestJunk);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
         telemetry.addLine("Waiting for start");
         telemetry.update();
         waitForStart();
+        lowestJunk -= 0.5;
+        highestJunk += 0.5;
+
+        slide1.setPower(1);
+        slide2.setPower(1);
 
 //        camera.closeCameraDevice();
     }
@@ -452,7 +479,8 @@ public abstract class AutoJava extends RobotBase {
     }
     protected void sampleInBasket() {
 //        moveServo(arm, 0.76);
-        moveServo(arm, 0.16);
+        moveServo(arm, 0.82);
+//        moveServo(arm, 0.16);
         sleep(150);
         moveServo(claw, this.openClaw);
         sleep(150);
@@ -493,24 +521,27 @@ public abstract class AutoJava extends RobotBase {
         pTelem.update();
 
         double distSeen = distanceSensor.getDistance(DistanceUnit.INCH);
-        pTelem.setData("distance", distSeen);
+//        pTelem.setData("distance", distSeen);
         pTelem.update();
 
+        int beforeLf = lf_drive.getCurrentPosition();
+
+
         double horizontal = (right) ? 0.46 : -0.46;
+        moveBot(threshold, 0, 0, horizontal);
         rf_drive.setPower(-horizontal);
         rb_drive.setPower(horizontal);
         lf_drive.setPower(horizontal);
         lb_drive.setPower(-horizontal);
+//        sleep(400);
 
         boolean found = false;
-        int beforeLf = lf_drive.getCurrentPosition();
-        ElapsedTime runtime = new ElapsedTime(); runtime.reset();
-        while (!found && opModeIsActive() && (timeout && runtime.seconds() < 4)) {
-            if (Math.abs(lf_drive.getCurrentPosition() - beforeLf) < threshold) {
-                continue;
-            }
+//        ElapsedTime runtime = new ElapsedTime(); runtime.reset();
+//        while (!found && opModeIsActive() && (timeout && runtime.seconds() < 4)) {
+        while (!found && opModeIsActive()) {
             distSeen = distanceSensor.getDistance(DistanceUnit.INCH);
-            if (distSeen < lowestJunk || (distSeen > highestJunk && distSeen < maxDist)) {
+            /*
+            if (distSeen < maxDist && (distSeen < lowestJunk || distSeen > highestJunk)) {
                 removePower();
                 List<Double> distancesWhile = new ArrayList<>();
                 runTasksAsync(
@@ -524,17 +555,25 @@ public abstract class AutoJava extends RobotBase {
                     pTelem.update();
                     break;
                 }
+            }*/
+            if (distSeen < 7) {
+                pTelem.addLine("seen distance: " + distSeen);
+                pTelem.update();
+                removePower();
+                break;
             }
             rf_drive.setPower(-horizontal);
             rb_drive.setPower(horizontal);
             lf_drive.setPower(horizontal);
             lb_drive.setPower(-horizontal);
         }
-        pTelem.addLine(timeout && runtime.seconds() > 4 ? "Did not detect object" : "Done");
+//        pTelem.addLine(timeout && runtime.seconds() > 4 ? "Did not detect object" : "Done");
+        pTelem.addLine("Done");
         pTelem.update();
         removePower();
-        sleep(300);
-        return timeout && runtime.seconds() > 4;
+//        sleep(300);
+//        return timeout && runtime.seconds() > 4;
+        return true;
     }
     protected boolean moveTillObjectSeen(boolean right, boolean timeout) {
         return moveTillObjectSeen(right, timeout, 0);
@@ -546,7 +585,8 @@ public abstract class AutoJava extends RobotBase {
     protected void goToSample() {
         int oldLf = lf_drive.getCurrentPosition();
         boolean seen = moveTillObjectSeen(false, true, 2.5);
-        sleep(100);
+//        sleep(100);
+        /*
         if (!seen) {
             double distTraveled = ticsToInches(Math.abs(lf_drive.getCurrentPosition() - oldLf));
             if (distTraveled < 3) {
@@ -558,9 +598,13 @@ public abstract class AutoJava extends RobotBase {
 //            moveBot(2, 0, 0, 1);
 //            moveBot(0.5, 0, 0, -1);
             moveBot(1, -1, 0, 0);
-        }
-        sleep(100);
-        moveBot(seen ? (distanceSensor.getDistance(DistanceUnit.INCH) - 7.7) + 2 : 3.3, 1, 0, 0);
+        }*/
+        sleep(10);
+        double distSeen = distanceSensor.getDistance(DistanceUnit.INCH);
+        double distOffset = 7.5;
+        double targetDist = distSeen < distOffset ? 0 : distSeen - distOffset;
+        telemetry.addLine("targetDist at :" + targetDist);
+//        moveBot(seen ? targetDist : 3, 1, 0, 0);
     }
     
     

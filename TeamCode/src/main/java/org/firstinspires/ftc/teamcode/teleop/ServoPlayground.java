@@ -25,7 +25,7 @@ public class ServoPlayground extends RobotBase {
 
         waitForStart();
 
-        final String[] servos = new String[] { "lift", "arm", "claw", "slide", "slideArm", "leftRoller", "rightRoller" };
+        final String[] servos = new String[] { "lift", "arm", "claw", "slidePower", "slidePos", "slideArm", "leftRoller", "rightRoller" };
         final char[] digitCycle = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '.' };
 
         ArrayList<HashMap<String, String>> positionsToNavigateTo = new ArrayList<>();
@@ -179,10 +179,19 @@ public class ServoPlayground extends RobotBase {
 //                            moveServo(claw, Double.parseDouble(rawServoPos), 20);
                             claw.setPosition(servoPos);
                             break;
-                        case "slide":
-                            slide.setPower(servoPos);
-                            sleep(3000);
-                            slide.setPower(0);
+                        case "slidePower":
+                            slide1.setPower(servoPos);
+                            slide2.setPower(servoPos);
+                            sleep(1000);
+                            slide1.setPower(0);
+                            slide2.setPower(0);
+                            telemetry.addLine("Pos eventual: " + slide1.getCurrentPosition());
+                            break;
+                        case "slidePos":
+                            runTasksAsync(
+                                    () -> moveMotor(slide1, (int) servoPos, 0.4),
+                                    () -> slide2.setPower(0.4)
+                            );
                             break;
                         case "slideArm":
                             slideArm.setPosition(servoPos);
